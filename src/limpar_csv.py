@@ -47,4 +47,4 @@ def limpar_csv_para_parcelar(csv_path, output_path, manter_t=False):
 
 
 if __name__ == "__main__":
-    print(limpar_csv_para_parcelar("128_fishing_trajs.csv", "data/ais_128.parquet", manter_t=True))
+    print(limpar_csv_para_parcelar("./data/128_fishing_trajs.csv", "./data/ais_128.parquet", manter_t=True))
