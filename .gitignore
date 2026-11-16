@@ -218,3 +218,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Dados CSV locais
+data/*.csv
+*.csv
+
+# venv
+IACH_AIS_venv/
