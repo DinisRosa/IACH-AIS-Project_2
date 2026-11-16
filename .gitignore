@@ -221,6 +221,7 @@ __marimo__/
 
 # Dados CSV locais
 data/*.csv
+data/*.parquet
 *.csv
 
 # venv
