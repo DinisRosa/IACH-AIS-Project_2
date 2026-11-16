@@ -223,6 +223,7 @@ __marimo__/
 data/*.csv
 data/*.parquet
 *.csv
+128_fishing_trajs.csv
 
 # venv
 IACH_AIS_venv/
