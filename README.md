@@ -38,6 +38,8 @@ tarefa, está em [`docs/markdown/passos_futuros.md`](docs/markdown/passos_futuro
 │   ├── limpar_csv.py           CSV → Parquet (colunas úteis, label binário)
 │   ├── dividir_dataset.py      Divisão por trajetória completa
 │   ├── preparar_dados.py       Divisão + t_rel + normalização ajustada ao treino
+│   ├── verificar_divisao.py    Confirma a divisão (ids, pontos e trajetórias)
+│   ├── analisar_gaps.py        Estudo dos gaps temporais (limiar e possíveis fusões)
 │   └── main.py                 Executa o pipeline de ponta a ponta
 ├── data/                       Entrada e saídas locais (ignoradas pelo Git)
 ├── docs/
@@ -135,6 +137,8 @@ Cada módulo também pode ser executado isoladamente:
 python src/limpar_csv.py        # CSV → ais_123.parquet
 python src/dividir_dataset.py   # ais_123.parquet → treino/teste/validação
 python src/preparar_dados.py    # divisão + t_rel + normalização
+python src/verificar_divisao.py # confirma a divisão
+python src/analisar_gaps.py     # estudo dos gaps temporais
 ```
 
 ## Decisões de desenho

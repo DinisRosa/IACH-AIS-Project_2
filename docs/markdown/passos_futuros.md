@@ -2,12 +2,14 @@
 
 Legenda: `[x]` feito · `[~]` parcialmente feito / por confirmar · `[ ]` por fazer
 
-## Estado atual (16/11/2026)
+## Estado atual (17/11/2026)
 
 Ficheiros já criados:
 - `limpar_csv.py` → `limpar_csv_para_parcelar` (CSV → Parquet limpo, label binário, ordenado por `(id, t)`)
 - `dividir_dataset.py` → `dividir_parquet` (divisão por trajetória completa)
+- `verificar_divisao.py` → `verificar_divisao` (confirma ids sem sobreposição, total de pontos e trajetórias completas)
 - `preparar_dados.py` → `preparar_dados` (divisão + `t_rel` bruto + normalização mediana/IQR ajustada só ao treino + JSON de parâmetros)
+- `analisar_gaps.py` → `analisar_gaps` / `resumo_gaps` / `candidatos_fusao` (estudo dos gaps temporais e deteção de possíveis trajetórias fundidas)
 
 Dataset: **123 trajetórias** (confirmado ao voltar a descarregar o dataset do Kaggle; a proposta original indicava 128, valor entretanto corrigido) → divisão 70/15/15 = 86 / 18 / 19.
 Colunas finais: `id, t_rel, label, x, y, signed_turn, time_gap, euc_speed, distanceToShore`.
@@ -30,10 +32,10 @@ Decisões tomadas:
 - [x] Divisão por trajetória completa (treino/teste/validação)
 - [x] Contagem de trajetórias confirmada: 123 (dataset descarregado de novo do Kaggle, para excluir erro de cópia)
 - [x] Duração das trajetórias vista via `t_rel` (mediana ≈ 15 h, mín. ≈ 6 h, máx. ≈ 85 h)
-- [~] Confirmar que nenhum `id` aparece em mais de um conjunto e que o total de pontos bate com o original
-- [ ] Ver a proporção de pesca por conjunto
+- [x] Confirmado (`verificar_divisao`): nenhum `id` em mais de um conjunto, trajetórias completas, 1 026 279 pontos no total (= original), 775 521 de pesca preservados
+- [x] Proporção de pesca por conjunto: treino 75,6% · teste 73,5% · validação 77,1% (pesca é a classe maioritária; divisão razoavelmente equilibrada)
 - [x] Diferença 123 vs 128 esclarecida: o dataset tem mesmo 123 trajetórias (proposta corrigida)
-- [ ] Investigar o `time_gap` máximo (~13 h): pode ser duas trajetórias fundidas no mesmo `id`
+- [x] Investigar o `time_gap` máximo (~13 h): é uma falha de transmissão, não uma fusão — 1,55 km em 13,1 h (0,12 km/h), label de pesca antes e depois; 0 gaps com velocidade implícita > 30 km/h
 
 ## 2. Normalização
 - [x] Função de ajuste (só treino) e de aplicação
@@ -106,4 +108,5 @@ Tarefas:
 ## Notas e riscos
 - IDs com o mesmo prefixo são tratados como independentes; justificar ou testar o impacto de possível fuga de informação.
 - Normalização, imputação e limiares só com estatísticas do treino.
+- A pesca é a classe maioritária (~75% dos pontos): a *accuracy* engana; reportar métricas das duas classes e comparar com o baseline trivial "prever sempre pesca".
 - Se o deep learning não superar o baseline simples, isso também é um resultado válido.
