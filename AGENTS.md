@@ -5,6 +5,10 @@
 - This repository's root is the project root.
 - Read [`README.md`](README.md) first: it is the project map (goal, data,
   pipeline, environment and how to run it).
+- When doing a full read of the project, ignore every path matched by
+  `.gitignore` (generated data, virtual environments, caches and build
+  artifacts). Read only tracked/source files unless the task explicitly needs
+  an ignored artifact.
 - Python code and its setup instructions live under `src/`; the module entry
   point is `src/main.py`.
 - The detailed plan and per-step status are in
