@@ -218,3 +218,22 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Dados CSV locais
+data/*.csv
+data/*.parquet
+data/*.json
+*.csv
+
+# venv
+IACH_AIS_venv/
+
+# LaTeX build intermediates
+*.aux
+*.bbl
+*.blg
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz

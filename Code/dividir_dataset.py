@@ -59,7 +59,7 @@ def dividir_parquet(parquet_path, treino_path, teste_path, validacao_path,
 
 if __name__ == "__main__":
     print(dividir_parquet(
-        "./data/ais_128.parquet",
+        "./data/ais_123.parquet",
         "./data/treino.parquet", "./data/teste.parquet", "./data/validacao.parquet",
         70, 15, 15,
     ))
