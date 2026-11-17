@@ -3,30 +3,41 @@
 ## Start here
 
 - This repository's root is the project root.
-- Use [`README.md`](README.md) for the project map and branch roles.
-- Python code and its setup instructions are under `CODE/`; read
-  [`CODE/README.md`](CODE/README.md) before changing the pipeline.
+- Read [`README.md`](README.md) first: it is the project map (goal, data,
+  pipeline, environment and how to run it).
+- Python code and its setup instructions live under `src/`; the module entry
+  point is `src/main.py`.
+- The detailed plan and per-step status are in
+  [`docs/markdown/passos_futuros.md`](docs/markdown/passos_futuros.md).
 
 ## Branch and artifact rules
 
 - Before editing, inspect `git status --short --branch` and preserve existing
   changes.
-- `features_engineering` is the completed feature-engineering record. Its
-  generated figures and dataset archive belong on that branch.
-- `model_training` is the next working phase. Do not restore obsolete
-  feature-engineering outputs into its working tree.
-- Keep future phase outputs on the matching phase branch. Never force-push or
-  rewrite shared branch history.
-- `CODE/database/`, `CODE/1_training/`, `CODE/2_testing/`, and
-  `CODE/3_validation/` contain local inputs or generated data and are ignored
-  by Git. Preserve the source CSV inputs; regenerate or restore derived JSON
-  data only when needed.
+- `main` is the integration branch. Older topic branches (`code`, `latex`,
+  `limpeza`, `bibliografia`) are historical snapshots from before the
+  `src/`/`docs/` reorganization; do not merge them back without checking for
+  duplicated or obsolete files.
+- Keep new phase outputs on a branch that matches the phase. Never force-push
+  or rewrite shared branch history.
+- Only commit when explicitly asked. Stage only the files relevant to the
+  request.
+
+## Data and generated artifacts
+
+- `data/` holds local inputs and generated data and is ignored by Git
+  (`*.csv`, `*.parquet`, `*.json`). Do not commit downloaded datasets or
+  pipeline outputs.
+- Preserve the source CSV `data/128_fishing_trajs.csv`. Regenerate derived
+  files (`ais_128.parquet`, `treino_norm.parquet`, `teste_norm.parquet`,
+  `validacao_norm.parquet`, `normalizacao.json`) with `python src/main.py`
+  instead of committing them.
+- Leave virtual environments (`IACH_AIS_venv/`), caches and LaTeX build
+  intermediates out of commits.
 
 ## Project materials
 
-- Keep research sources in `bibliografia/`, proposal sources in `latex/`, and
-  project decisions in `docs/`.
-- Leave downloaded datasets, virtual environments, caches, and LaTeX build
-  intermediates out of commits.
+- Keep research sources in `docs/bibliografia/`, proposal sources in
+  `docs/latex/`, and notes/decisions in `docs/`.
 - Make project-specific changes only when they support the user's current
   request; do not reorganize unrelated code or research material.
