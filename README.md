@@ -45,7 +45,8 @@ completo, com o estado de cada tarefa, está em
 │   ├── criar_janelas.py        Janelas sobrepostas por pontos ou por tempo
 │   ├── verificar_divisao.py    Confirma a divisão (ids, pontos e trajetórias)
 │   ├── analisar_gaps.py        Estudo dos gaps temporais (limiar e possíveis fusões)
-│   └── main.py                 Executa o pipeline de ponta a ponta
+│   ├── pipeline.ipynb         Notebook explicativo do pipeline (passo a passo)
+│   └── main.py                 Orquestra o pipeline (ponto de entrada)
 ├── data/                       Entrada e saídas locais (ignoradas pelo Git)
 ├── docs/
 │   ├── bibliografia/           Artigos e teses de referência
@@ -133,7 +134,8 @@ pontos sem janela. Falta gerar validação/teste e implementar o batching.
 Requer Python 3.12 ou superior. O ambiente local foi testado com Python
 3.14.4, pandas 3.1.1, numpy 2.5.5, pyarrow 26.0.1, PyTorch 2.15.0 (CPU),
 scikit-learn 1.9.1, matplotlib 3.11.2, seaborn 0.13.2 e tqdm 4.70.1. As
-versões exatas estão em [`requirements.txt`](requirements.txt).
+versões exatas estão em [`requirements.txt`](requirements.txt). O notebook usa
+JupyterLab (`jupyterlab` e `ipykernel`, também em `requirements.txt`).
 
 ```bash
 python3 -m venv IACH_AIS_venv
@@ -154,6 +156,13 @@ python src/main.py
 Isto gera `data/ais_123.parquet`, `data/treino_norm.parquet`,
 `data/teste_norm.parquet`, `data/validacao_norm.parquet` e
 `data/normalizacao.json`.
+
+Para uma versão explicada passo a passo (com células de texto e de código que
+chamam as mesmas funções), abre o notebook:
+
+```bash
+jupyter lab src/pipeline.ipynb
+```
 
 Cada módulo também pode ser executado isoladamente:
 
@@ -182,6 +191,8 @@ python src/criar_janelas.py     # janelas sobrepostas (pontos ou tempo)
 
 - [`docs/markdown/passos_futuros.md`](docs/markdown/passos_futuros.md) — plano
   detalhado e estado de cada tarefa.
+- [`src/pipeline.ipynb`](src/pipeline.ipynb) — pipeline explicado e executável,
+  passo a passo.
 - [`docs/latex/proposta_pt.tex`](docs/latex/proposta_pt.tex) — proposta do
   projeto (problema, objetivos, abordagem e avaliação).
 - `docs/bibliografia/` — artigos de referência (HMM para pesca, segmentação

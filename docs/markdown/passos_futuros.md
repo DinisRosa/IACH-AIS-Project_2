@@ -43,6 +43,7 @@ Decisões tomadas:
 - [x] Criar venv do projeto
 - [x] Instalar só o necessário para dados (`pandas`, `pyarrow`)
 - [x] Instalar bibliotecas de ML (PyTorch 2.15.0 **CPU**, scikit-learn 1.9.1, matplotlib, seaborn, tqdm); versões em `requirements.txt`
+- [x] JupyterLab/ipykernel e notebook `src/pipeline.ipynb` (pipeline explicado passo a passo)
 
 ## 1. Dados e verificação
 - [x] Conversão CSV → Parquet (colunas mantidas, label binário, ordenação)
@@ -54,6 +55,7 @@ Decisões tomadas:
 - [x] Proporção de pesca por conjunto: treino 75,6% · teste 73,5% · validação 77,1% (pesca é a classe maioritária; divisão razoavelmente equilibrada)
 - [x] Diferença 123 vs 128 esclarecida: o dataset tem mesmo 123 trajetórias (proposta corrigida)
 - [x] Investigar o `time_gap` máximo (~13 h): é uma falha de transmissão, não uma fusão — 1,55 km em 13,1 h (0,12 km/h), label de pesca antes e depois; 0 gaps com velocidade implícita > 30 km/h
+- [x] `main.py` reduzido a orquestrador; a lógica fica nos módulos (sem imports nem blocos repetidos)
 
 ## 2. Normalização
 - [x] Função de ajuste (só treino) e de aplicação
