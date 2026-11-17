@@ -9,7 +9,7 @@
 
 % Official IJCAI--ECAI 26 style file.
 % Compile from this directory so the relative path resolves correctly.
-\usepackage{../FormattingGuidelines-IJCAI-ECAI-26/ijcai26}
+\usepackage{FormattingGuidelines-IJCAI-ECAI-26/ijcai26}
 
 % Packages required/recommended by the official template.
 \usepackage{times}
@@ -61,7 +61,7 @@
 \maketitle
 
 \begin{abstract}
-A pesca ilegal, não declarada e não regulamentada (IUU) ameaça a sustentabilidade dos oceanos. O \emph{Automatic Identification System} (AIS) permite monitorizar navios à escala global, mas converter trajetórias em deteções úteis à fiscalização exige métodos robustos e interpretáveis. Propõe-se investigar se a combinação de janelas sobrepostas e pós-processamento temporal melhora a qualidade e a estabilidade da segmentação semântica de trajetórias AIS para detetar pesca, como apoio à decisão de inspetores humanos (\emph{human-in-the-loop}), segundo princípios de Inteligência Artificial Centrada no Humano (HCAI): explicabilidade, confiança calibrada e decisão humana final. A avaliação usa 128 trajetórias anotadas (Kaggle), comparando com um \emph{Hidden Markov Model} (HMM) e com Wu et al.~\shortcite{wu2022} através de precisão, sensibilidade, F1 e \emph{intersection-over-union} (IoU), complementadas por análise qualitativa.
+A pesca ilegal, não declarada e não regulamentada (IUU) ameaça a sustentabilidade dos oceanos. O \emph{Automatic Identification System} (AIS) permite monitorizar navios à escala global, mas converter trajetórias em deteções úteis à fiscalização exige métodos robustos e interpretáveis. Propõe-se investigar se a combinação de janelas sobrepostas e pós-processamento temporal melhora a qualidade e a estabilidade da segmentação semântica de trajetórias AIS para detetar pesca, como apoio à decisão de inspetores humanos (\textcolor{red}{\emph{human-on-the-loop}}), segundo princípios de Inteligência Artificial Centrada no Humano (HCAI): explicabilidade, confiança calibrada e decisão humana final. A avaliação usa \textcolor{red}{123} trajetórias anotadas (Kaggle), comparando com um \emph{Hidden Markov Model} (HMM) e com Wu et al.~\shortcite{wu2022} através de precisão, sensibilidade, F1 e \emph{intersection-over-union} (IoU), complementadas por análise qualitativa.
 \end{abstract}
 
 \section{Problema e Motivação}
@@ -81,7 +81,7 @@ Subsistem, porém, duas limitações. Primeiro, as predições ponto-a-ponto sã
 \section{Objetivos}
 \label{sec:objetivos}
 
-O objetivo principal é desenvolver um sistema de segmentação semântica de trajetórias AIS que detete pesca de forma robusta e interpretável, combinando \textbf{janelas sobrepostas} e \textbf{pós-processamento temporal}, como \textbf{apoio à decisão de inspetores} (\emph{human-in-the-loop}). Os objetivos específicos são:
+O objetivo principal é desenvolver um sistema de segmentação semântica de trajetórias AIS que detete pesca de forma robusta e interpretável, combinando \textbf{janelas sobrepostas} e \textbf{pós-processamento temporal}, como \textbf{apoio à decisão de inspetores} (\textcolor{red}{\emph{human-on-the-loop}}, \textcolor{red}{com o inspetor a supervisionar e a poder intervir na decisão}). Os objetivos específicos são:
 
 \begin{enumerate}
     \item Construir um \emph{pipeline} de pré-processamento (limpeza, normalização, engenharia de características e janelamento com sobreposição).
@@ -122,7 +122,7 @@ O sistema organiza-se num \emph{pipeline} de cinco etapas (Figura~\ref{fig:pipel
 \section{Materiais e Dados}
 \label{sec:materiais-dados}
 
-Será usado o conjunto público \emph{Detailed Labelled Fishing Trajectories from AIS} (Kaggle)~\cite{kaggleAIS}: 128 trajetórias de pesca anotadas, cerca de 1,03 milhões de pontos, 13 atributos por ponto (identificador do navio, instante, longitude, latitude, velocidade, rumo, distância à costa, entre outros) e um rótulo. As cinco classes, desequilibradas (pesca: \texttt{02-}, \texttt{04-fishing}; navegação: \texttt{01-}, \texttt{03-}, \texttt{05-sailing}), são agregadas num problema binário, mantendo o desequilíbrio natural (sem reamostragem nem pesos de classe) e as trajetórias completas. Eticamente, apesar de públicos, o uso de dados AIS em fiscalização exige cuidado: a deteção automática não deve, por si só, fundamentar sanções (a decisão humana é obrigatória); o sistema deve ser transparente e justo, evitando enviesamentos contra tipos de navio, regiões ou comunidades de pesca; e a confiança deve ser calibrada para não induzir falsa segurança.
+Será usado o conjunto público \emph{Detailed Labelled Fishing Trajectories from AIS} (Kaggle)~\cite{kaggleAIS}: \textcolor{red}{123} trajetórias de pesca anotadas, cerca de 1,03 milhões de pontos, 13 atributos por ponto (identificador do navio, instante, longitude, latitude, velocidade, rumo, distância à costa, entre outros) e um rótulo. As cinco classes, desequilibradas (pesca: \texttt{02-}, \texttt{04-fishing}; navegação: \texttt{01-}, \texttt{03-}, \texttt{05-sailing}), são agregadas num problema binário, mantendo o desequilíbrio natural (sem reamostragem nem pesos de classe) e as trajetórias completas. Eticamente, apesar de públicos, o uso de dados AIS em fiscalização exige cuidado: a deteção automática não deve, por si só, fundamentar sanções (a decisão humana é obrigatória); o sistema deve ser transparente e justo, evitando enviesamentos contra tipos de navio, regiões ou comunidades de pesca; e a confiança deve ser calibrada para não induzir falsa segurança.
 
 \section{Avaliação}
 \label{sec:avaliacao}
@@ -132,7 +132,7 @@ Quantitativamente, medem-se precisão, sensibilidade, F1 e IoU por segmento (e p
 \textcolor{red}{Os dados são divididos por ID completo de trajetória em treino/validação/teste (70/15/15), mantendo todos os pontos de cada trajetória no mesmo conjunto. Neste estudo, cada ID completo é tratado como uma unidade independente; IDs com o mesmo prefixo não são agrupados. Os hiperparâmetros usam apenas treino e validação.} Qualitativamente, produzem-se mapas das trajetórias com os segmentos preditos sobrepostos à verdade de referência, e analisam-se casos de sucesso e falha. Para a dimensão HCAI~\cite{shneiderman2020}, avalia-se de forma preliminar a explicabilidade (verificando se as atribuições~\cite{lundberg2017} correspondem aos padrões de movimento esperados) e a utilidade como apoio à decisão, através de um \emph{dashboard} de prova de conceito com segmentação, confiança calibrada~\cite{guo2017} e justificações.
 
 % References may use the provided IJCAI named bibliography style.
-\bibliographystyle{../FormattingGuidelines-IJCAI-ECAI-26/named}
+\bibliographystyle{FormattingGuidelines-IJCAI-ECAI-26/named}
 \bibliography{references}
 
 \end{document}
