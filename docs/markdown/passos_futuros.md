@@ -9,6 +9,7 @@ Ficheiros já criados:
 - `dividir_dataset.py` → `dividir_parquet` (divisão por trajetória completa)
 - `preparar_dados.py` → `preparar_dados` (divisão + `t_rel` bruto + normalização mediana/IQR ajustada só ao treino + JSON de parâmetros)
 - `criar_janelas.py` → `criar_janelas` (janelas por nº de pontos **ou** por duração, com sobreposição, corte em gaps opcional, máscara de padding) e `carregar_janelas`
+- <span style="color:red">`gerar_janelas.py` → `gerar_janelas` (gera os três `.npz` finais, verifica a integridade e escreve `janelas_resumo.json`; adicionado a 17/11/2026)</span>
 - `verificar_divisao.py` → `verificar_divisao` (confirma ids sem sobreposição, total de pontos e trajetórias completas)
 - `analisar_gaps.py` → `analisar_gaps` / `resumo_gaps` / `candidatos_fusao` (estudo dos gaps temporais e deteção de possíveis trajetórias fundidas)
 
@@ -29,7 +30,7 @@ Decisões tomadas:
 | 0. Ambiente | Concluída | venv e bibliotecas de dados/ML |
 | 1. Dados e verificação | Concluída | limpeza, divisão, qualidade e gaps |
 | 2. Normalização | Quase concluída | normalização ajustada ao treino |
-| 3. Janelamento | **Em curso** | janelas sobrepostas, gaps, padding, batching |
+| 3. Janelamento | <span style="color:red">**Quase concluída**</span> | janelas sobrepostas, gaps, padding, batching |
 | 4. Baselines | Por começar | HMM, modelo clássico e aproximação a Wu et al. |
 | 5. Classificador | Por começar | treinar a rede de janelas |
 | 6. Pós-processamento | Por começar | agregar/suavizar previsões e estabilizar segmentos |
@@ -63,7 +64,7 @@ Decisões tomadas:
 - [x] `t_rel` bruto à parte
 - [x] Verificar distribuições normalizadas (`describe`)
 
-## 3. Janelamento com sobreposição  ← **em curso**
+## 3. Janelamento com sobreposição  ← <span style="color:red">**quase concluído** (janelas geradas em 17/11/2026)</span>
 
 Objetivo: transformar as trajetórias normalizadas em janelas com sobreposição (por pontos ou por tempo), com máscara para padding, prontas para o classificador.
 
@@ -97,11 +98,19 @@ Sensibilidade de `min_pontos` (treino, 30 min, 50%, `gap_max_s=600`, `T = 590`):
 ### 3.3. Gerar e guardar as janelas finais (treino/validação/teste)
 Objetivo: produzir os `.npz` finais com os mesmos parâmetros e confirmar a cobertura em cada conjunto.
 
-- [ ] Confirmar os parâmetros finais: `duracao_s=30*60`, `sobreposicao_pct=50`, `gap_max_s=600`, `min_pontos=30`
-- [ ] Criar `src/gerar_janelas.py` que gera e guarda `data/janelas_treino.npz`, `data/janelas_validacao.npz` e `data/janelas_teste.npz`
-- [ ] Registar por conjunto: `n_janelas`, `T`, `pontos_descartados` e cobertura
-- [ ] Confirmar que `T` pode variar entre conjuntos e que o modelo lida com isso (packing/máscara)
-- [ ] Verificar a integridade: metas dentro do `id` certo e nenhuma janela a atravessar um gap > 600 s
+<span style="color:red">**Concluído em 17/11/2026** — `src/gerar_janelas.py` gera os três `.npz`, verifica a integridade e grava `data/janelas_resumo.json`:</span>
+
+| Conjunto | Janelas | `T` | Pontos sem janela | Cobertura | Padding | Integridade |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Treino | 7 685 | 590 | 2 617 | 99,630% | 69,2% | OK |
+| Validação | 1 949 | 531 | 79 | 99,954% | 66,6% | OK |
+| Teste | 1 619 | 481 | 625 | 99,573% | 63,0% | OK |
+
+- [x] Confirmar os parâmetros finais: `duracao_s=30*60`, `sobreposicao_pct=50`, `gap_max_s=600`, `min_pontos=30`
+- [x] Criar `src/gerar_janelas.py` que gera e guarda `data/janelas_treino.npz`, `data/janelas_validacao.npz` e `data/janelas_teste.npz`
+- [x] Registar por conjunto: `n_janelas`, `T`, `pontos_descartados` e cobertura
+- [x] Confirmar que `T` pode variar entre conjuntos e que o modelo lida com isso (packing/máscara)
+- [x] Verificar a integridade: metas dentro do `id` certo e nenhuma janela a atravessar um gap > 600 s
 
 ### 3.4. Política para pontos sem janela
 Objetivo: decidir o que fazer aos pontos que ficam fora de todas as janelas.

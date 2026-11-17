@@ -17,8 +17,7 @@ final.
 ## Estado atual
 
 A **preparação e verificação dos dados** estão concluídas. O **janelamento com
-sobreposição** está em curso: a função já existe e os parâmetros estão
-decididos, faltando gerar as janelas de validação/teste e o *batching*. O plano
+sobreposição** está quase concluído: <span style="color:red">as janelas de treino, validação e teste já são geradas, guardadas em `.npz` e verificadas (17/11/2026)</span>; falta o *batching* e a política para pontos sem janela. O plano
 completo, com o estado de cada tarefa, está em
 [`docs/markdown/passos_futuros.md`](docs/markdown/passos_futuros.md).
 
@@ -29,7 +28,7 @@ completo, com o estado de cada tarefa, está em
 | Divisão treino/teste/validação por trajetória | Concluído |
 | Verificação da divisão e análise de gaps | Concluído |
 | Normalização e parâmetros guardados em JSON | Concluído |
-| Janelamento com sobreposição | Em curso |
+| Janelamento com sobreposição | <span style="color:red">Quase concluído — janelas geradas; falta *batching*</span> |
 | Classificador de janelas | Por fazer |
 | Pós-processamento temporal | Por fazer |
 | Avaliação quantitativa e qualitativa | Por fazer |
@@ -43,6 +42,7 @@ completo, com o estado de cada tarefa, está em
 │   ├── dividir_dataset.py      Divisão por trajetória completa
 │   ├── preparar_dados.py       Divisão + t_rel + normalização ajustada ao treino
 │   ├── criar_janelas.py        Janelas sobrepostas por pontos ou por tempo
+│   ├── gerar_janelas.py        Gera e guarda as janelas dos três conjuntos
 │   ├── verificar_divisao.py    Confirma a divisão (ids, pontos e trajetórias)
 │   ├── analisar_gaps.py        Estudo dos gaps temporais (limiar e possíveis fusões)
 │   ├── pipeline.ipynb         Notebook explicativo do pipeline (passo a passo)
@@ -86,6 +86,10 @@ O desequilíbrio natural é mantido (sem reamostragem nem pesos de classe).
 | `teste_norm.parquet` | 18 trajetórias, normalizadas |
 | `validacao_norm.parquet` | 19 trajetórias, normalizadas |
 | `normalizacao.json` | Parâmetros de normalização ajustados ao treino |
+| <span style="color:red"><code>janelas_treino.npz</code></span> | <span style="color:red">7 685 janelas de treino (`T=590`), com máscara</span> |
+| <span style="color:red"><code>janelas_validacao.npz</code></span> | <span style="color:red">1 949 janelas de validação (`T=531`)</span> |
+| <span style="color:red"><code>janelas_teste.npz</code></span> | <span style="color:red">1 619 janelas de teste (`T=481`)</span> |
+| <span style="color:red"><code>janelas_resumo.json</code></span> | <span style="color:red">Resumo por conjunto: janelas, `T`, cobertura, padding e integridade</span> |
 
 As trajetórias não devem ser usadas como dados de entrada sem regenerar estes
 ficheiros: `data/` é ignorado pelo Git e todos os derivados são reprodutíveis
@@ -110,24 +114,30 @@ a partir do CSV.
 Colunas finais dos conjuntos normalizados:
 `id, t_rel, label, x, y, signed_turn, time_gap, euc_speed, distanceToShore`.
 
-## Janelamento (em curso)
+## Janelamento (quase concluído)
 
 `criar_janelas.py` transforma cada trajetória em janelas com sobreposição, em
 dois modos: por número de pontos (`n_pontos`) ou por duração (`duracao_s`).
 Cada janela guarda o `id`, as posições na trajetória e os `t_rel` no `meta`;
-no modo tempo há padding no fim, com `mascara` e `y = -1`. As janelas podem ser
-guardadas em `.npz` (`output_path`) e relidas com `carregar_janelas`.
+no modo tempo há padding no fim, com `mascara` e `y = -1`.
 
-Parâmetros decididos para a experiência principal (modo tempo):
+<span style="color:red">`gerar_janelas.py` aplica os parâmetros finais aos três conjuntos, grava os `.npz` e o `janelas_resumo.json`, e verifica a integridade (ids, posições, `t_rel`, gaps, máscara e padding). Resultados de 17/11/2026:</span>
+
+| Conjunto | Janelas | `T` | Pontos sem janela | Cobertura | Padding |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Treino | 7 685 | 590 | 2 617 | 99,63% | 69,2% |
+| Validação | 1 949 | 531 | 79 | 99,954% | 66,6% |
+| Teste | 1 619 | 481 | 625 | 99,573% | 63,0% |
+
+Parâmetros da experiência principal (modo tempo):
 
 - janelas de **30 min**, sobreposição de **50%**;
 - `gap_max_s=600`: nenhuma janela atravessa gaps superiores a 10 min;
 - `min_pontos=30`: descarta janelas com contexto insuficiente;
-- `T` sem limite (590 pontos no treino); o padding (~69% de `X`) será tratado
-  no `batching`/modelo, não limitando `T`.
+- `T` sem limite (590 pontos no treino); o padding será tratado no
+  `batching`/modelo, não limitando `T`.
 
-No treino (86 trajetórias) isto dá **7 685 janelas** e apenas **0,37%** dos
-pontos sem janela. Falta gerar validação/teste e implementar o batching.
+<span style="color:red">A cobertura é superior a 99,5% em todos os conjuntos e a verificação de integridade não encontrou problemas. Falta implementar o *batching* e decidir a política para pontos sem janela.</span>
 
 ## Configuração do ambiente
 
@@ -154,8 +164,8 @@ python src/main.py
 ```
 
 Isto gera `data/ais_123.parquet`, `data/treino_norm.parquet`,
-`data/teste_norm.parquet`, `data/validacao_norm.parquet` e
-`data/normalizacao.json`.
+`data/teste_norm.parquet`, `data/validacao_norm.parquet`,
+`data/normalizacao.json` e <span style="color:red">os três `.npz` de janelas mais `data/janelas_resumo.json` (17/11/2026)</span>.
 
 Para uma versão explicada passo a passo (com células de texto e de código que
 chamam as mesmas funções), abre o notebook:
@@ -173,6 +183,7 @@ python src/preparar_dados.py    # divisão + t_rel + normalização
 python src/verificar_divisao.py # confirma a divisão
 python src/analisar_gaps.py     # estudo dos gaps temporais
 python src/criar_janelas.py     # janelas sobrepostas (pontos ou tempo)
+python src/gerar_janelas.py     # gera e guarda as janelas dos três conjuntos
 ```
 
 ## Decisões de desenho
@@ -186,6 +197,7 @@ python src/criar_janelas.py     # janelas sobrepostas (pontos ou tempo)
 - **Semente fixa** na divisão, para resultados reprodutíveis.
 - **Janelas de 30 min com 50% de sobreposição** (modo principal) e corte em
   gaps > 10 min; `min_pontos=30` e `T` sem limite, com padding mascarado.
+- <span style="color:red">**Janelas finais persistidas e verificadas** (17/11/2026): os três `.npz` são gerados por `gerar_janelas.py`, que confirma ids, posições, `t_rel`, gaps, máscara e padding.</span>
 
 ## Documentação
 
