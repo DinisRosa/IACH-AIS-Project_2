@@ -60,8 +60,6 @@ Decisões tomadas:
 - [x] Parâmetros guardados em JSON
 - [x] `t_rel` bruto à parte
 - [x] Verificar distribuições normalizadas (`describe`)
-- [ ] Testar o modelo com e sem `x`, `y` (posições absolutas) para ver se decora zonas geográficas
-- [ ] Guardar o JSON junto com o modelo final (necessário para a inferência e o dashboard)
 
 ## 3. Janelamento com sobreposição  ← **em curso**
 
@@ -123,7 +121,7 @@ Objetivo: alimentar o modelo com as janelas, ignorando o padding de forma corret
 - [ ] Sobreposição: 0%, 25%, 50%, 75%
 - [ ] Duração: 15, 30 e 60 min
 - [ ] Modo pontos (128/256/512) vs modo tempo
-- [ ] Sem `x` e `y` (posições absolutas) vs com todas as features
+- [ ] Sem `x` e `y` vs com todas as features (para ver se o modelo decora zonas geográficas)
 
 ## 4. Baselines
 Objetivo: ter referências simples e interpretáveis para comparar com a rede.
@@ -139,6 +137,7 @@ Objetivo: treinar o modelo principal que classifica cada ponto de cada janela.
 - [ ] Definir função de custo, otimizador e hiperparâmetros (só treino e validação)
 - [ ] Desequilíbrio de classes: a proposta mantém o natural, sem reamostragem nem pesos
 - [ ] Treinar e guardar o melhor modelo
+- [ ] Guardar o `normalizacao.json` junto com o modelo final (necessário para a inferência e o dashboard)
 
 ## 6. Pós-processamento temporal
 Objetivo: combinar as previsões das janelas sobrepostas e gerar segmentos contíguos e estáveis.
