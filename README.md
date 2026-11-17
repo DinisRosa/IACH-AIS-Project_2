@@ -3,7 +3,6 @@
 Cópia de segurança das fontes LaTeX da proposta, reunidas em `LaTeX/` e
 verificadas (compilação da versão PT).
 
-- `LaTeX/proposta.tex` — versão original (inglês).
 - `LaTeX/proposta_pt.tex` — versão em português (com `123` e
   *human-on-the-loop* a vermelho).
 - `LaTeX/proposta_pt.pdf` — PDF compilado da versão PT.
