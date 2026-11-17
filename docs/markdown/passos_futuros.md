@@ -9,7 +9,7 @@ Ficheiros já criados:
 - `dividir_dataset.py` → `dividir_parquet` (divisão por trajetória completa)
 - `preparar_dados.py` → `preparar_dados` (divisão + `t_rel` bruto + normalização mediana/IQR ajustada só ao treino + JSON de parâmetros)
 
-Dataset: **123 trajetórias** (confirmado ao voltar a descarregar o dataset do Kaggle; o 128 da proposta está incorreto) → divisão 70/15/15 = 86 / 18 / 19.
+Dataset: **123 trajetórias** (confirmado ao voltar a descarregar o dataset do Kaggle; a proposta original indicava 128, valor entretanto corrigido) → divisão 70/15/15 = 86 / 18 / 19.
 Colunas finais: `id, t_rel, label, x, y, signed_turn, time_gap, euc_speed, distanceToShore`.
 
 Decisões tomadas:
@@ -32,7 +32,7 @@ Decisões tomadas:
 - [x] Duração das trajetórias vista via `t_rel` (mediana ≈ 15 h, mín. ≈ 6 h, máx. ≈ 85 h)
 - [~] Confirmar que nenhum `id` aparece em mais de um conjunto e que o total de pontos bate com o original
 - [ ] Ver a proporção de pesca por conjunto
-- [x] Diferença 123 vs 128 esclarecida: o dataset tem mesmo 123 trajetórias (a proposta é que deve ser corrigida)
+- [x] Diferença 123 vs 128 esclarecida: o dataset tem mesmo 123 trajetórias (proposta corrigida)
 - [ ] Investigar o `time_gap` máximo (~13 h): pode ser duas trajetórias fundidas no mesmo `id`
 
 ## 2. Normalização
@@ -95,7 +95,7 @@ Tarefas:
 - [ ] Dashboard de prova de conceito
 
 ## 9. Escrita e entrega
-- [ ] Corrigir "128" para "123" na proposta/relatório (ou justificar a diferença)
+- [x] Corrigir "128" para "123" na proposta/relatório (proposta corrigida, alterações a vermelho)
 - [ ] Documentar decisões de desenho (janela, rótulo, IDs com o mesmo prefixo, normalização, `t_rel`)
 - [ ] Reportar a distribuição de classes por conjunto
 - [ ] `pip freeze > requirements.txt`

@@ -101,7 +101,7 @@ def preparar_dados(parquet_path, treino_path, teste_path, validacao_path,
 
 if __name__ == "__main__":
     print(preparar_dados(
-        "data/ais_128.parquet",
+        "data/ais_123.parquet",
         "data/treino_norm.parquet", "data/teste_norm.parquet",
         "data/validacao_norm.parquet",
         70, 15, 15,

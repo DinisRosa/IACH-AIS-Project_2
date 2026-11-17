@@ -50,12 +50,13 @@ tarefa, está em [`docs/markdown/passos_futuros.md`](docs/markdown/passos_futuro
 
 ## Dados
 
-Fonte: *Detailed Labelled Fishing Trajectories from AIS* (Kaggle), disponível
-localmente em `data/128_fishing_trajs.csv` (~170 MB, não versionado).
+Fonte: *Detailed Labelled Fishing Trajectories from AIS*, publicado no Kaggle
+por `thedevastator` em
+<https://www.kaggle.com/datasets/thedevastator/detailed-labelled-fishing-trajectories-from-ais>.
+O CSV descarregado fica localmente em `data/123_fishing_trajs.csv` (~170 MB,
+não versionado).
 
-- **123 trajetórias** e cerca de **1,03 milhões de pontos**. O `128` no nome
-  do ficheiro vem da proposta original; o conjunto tem na realidade 123
-  trajetórias, o que deve ser corrigido no relatório.
+- **123 trajetórias** e cerca de **1,03 milhões de pontos**.
 - Coordenadas `x`/`y` projetadas (metros), velocidade, variação de rumo,
   intervalo temporal e distância à costa por ponto.
 - Rótulos originais em cinco classes, desequilibradas:
@@ -71,7 +72,7 @@ O desequilíbrio natural é mantido (sem reamostragem nem pesos de classe).
 
 | Ficheiro | Conteúdo |
 | --- | --- |
-| `ais_128.parquet` | CSV limpo com as colunas úteis e label binário |
+| `ais_123.parquet` | CSV limpo com as colunas úteis e label binário |
 | `treino_norm.parquet` | 86 trajetórias, normalizadas |
 | `teste_norm.parquet` | 18 trajetórias, normalizadas |
 | `validacao_norm.parquet` | 19 trajetórias, normalizadas |
@@ -114,22 +115,22 @@ pip install pandas pyarrow numpy
 
 ## Como executar
 
-O CSV de origem tem de estar em `data/128_fishing_trajs.csv`. Executa a partir
+O CSV de origem tem de estar em `data/123_fishing_trajs.csv`. Executa a partir
 da raiz do repositório, porque os caminhos são relativos a `data/`:
 
 ```bash
 python src/main.py
 ```
 
-Isto gera `data/ais_128.parquet`, `data/treino_norm.parquet`,
+Isto gera `data/ais_123.parquet`, `data/treino_norm.parquet`,
 `data/teste_norm.parquet`, `data/validacao_norm.parquet` e
 `data/normalizacao.json`.
 
 Cada módulo também pode ser executado isoladamente:
 
 ```bash
-python src/limpar_csv.py        # CSV → ais_128.parquet
-python src/dividir_dataset.py   # ais_128.parquet → treino/teste/validação
+python src/limpar_csv.py        # CSV → ais_123.parquet
+python src/dividir_dataset.py   # ais_123.parquet → treino/teste/validação
 python src/preparar_dados.py    # divisão + t_rel + normalização
 ```
 

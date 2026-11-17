@@ -28,8 +28,8 @@
 - `data/` holds local inputs and generated data and is ignored by Git
   (`*.csv`, `*.parquet`, `*.json`). Do not commit downloaded datasets or
   pipeline outputs.
-- Preserve the source CSV `data/128_fishing_trajs.csv`. Regenerate derived
-  files (`ais_128.parquet`, `treino_norm.parquet`, `teste_norm.parquet`,
+- Preserve the source CSV `data/123_fishing_trajs.csv`. Regenerate derived
+  files (`ais_123.parquet`, `treino_norm.parquet`, `teste_norm.parquet`,
   `validacao_norm.parquet`, `normalizacao.json`) with `python src/main.py`
   instead of committing them.
 - Leave virtual environments (`IACH_AIS_venv/`), caches and LaTeX build
