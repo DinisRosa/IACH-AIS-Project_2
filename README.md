@@ -103,14 +103,16 @@ Colunas finais dos conjuntos normalizados:
 
 ## Configuração do ambiente
 
-Requer Python 3.12 ou superior (estas versões de numpy/pandas). O ambiente
-local foi testado com Python 3.14.4, pandas 3.1.1, pyarrow 26.0.1 e numpy
-2.5.5. O repositório não inclui `requirements.txt` nesta fase.
+Requer Python 3.12 ou superior. O ambiente local foi testado com Python
+3.14.4, pandas 3.1.1, numpy 2.5.5, pyarrow 26.0.1, PyTorch 2.15.0 (CPU),
+scikit-learn 1.9.1, matplotlib 3.11.2, seaborn 0.13.2 e tqdm 4.70.1. As
+versões exatas estão em [`requirements.txt`](requirements.txt).
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install pandas pyarrow numpy
+python3 -m venv IACH_AIS_venv
+source IACH_AIS_venv/bin/activate
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+pip install -r requirements.txt
 ```
 
 ## Como executar

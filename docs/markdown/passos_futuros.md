@@ -22,7 +22,7 @@ Decisões tomadas:
 ## 0. Ambiente
 - [x] Criar venv do projeto
 - [x] Instalar só o necessário para dados (`pandas`, `pyarrow`)
-- [ ] Instalar bibliotecas de ML mais tarde (PyTorch **versão CPU**, scikit-learn, etc.)
+- [x] Instalar bibliotecas de ML (PyTorch 2.15.0 **CPU**, scikit-learn 1.9.1, matplotlib, seaborn, tqdm); versões em `requirements.txt`
 
 ## 1. Dados e verificação
 - [x] Conversão CSV → Parquet (colunas mantidas, label binário, ordenação)
@@ -98,7 +98,7 @@ Tarefas:
 - [x] Corrigir "128" para "123" na proposta/relatório (proposta corrigida, alterações a vermelho)
 - [ ] Documentar decisões de desenho (janela, rótulo, IDs com o mesmo prefixo, normalização, `t_rel`)
 - [ ] Reportar a distribuição de classes por conjunto
-- [ ] `pip freeze > requirements.txt`
+- [x] `pip freeze > requirements.txt` (regenerar se as dependências mudarem)
 - [ ] Redigir resultados e discussão
 
 ---
