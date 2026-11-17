@@ -16,16 +16,20 @@ final.
 
 ## Estado atual
 
-A fase de **preparação de dados** está concluída. O próximo passo é o
-**janelamento com sobreposição**; o plano completo, com o estado de cada
-tarefa, está em [`docs/markdown/passos_futuros.md`](docs/markdown/passos_futuros.md).
+A **preparação e verificação dos dados** estão concluídas. O **janelamento com
+sobreposição** está em curso: a função já existe e os parâmetros estão
+decididos, faltando gerar as janelas de validação/teste e o *batching*. O plano
+completo, com o estado de cada tarefa, está em
+[`docs/markdown/passos_futuros.md`](docs/markdown/passos_futuros.md).
 
 | Fase | Estado |
 | --- | --- |
+| Ambiente e bibliotecas de dados/ML | Concluído |
 | Limpeza do CSV e conversão para Parquet | Concluído |
 | Divisão treino/teste/validação por trajetória | Concluído |
+| Verificação da divisão e análise de gaps | Concluído |
 | Normalização e parâmetros guardados em JSON | Concluído |
-| Janelamento com sobreposição | Próximo passo |
+| Janelamento com sobreposição | Em curso |
 | Classificador de janelas | Por fazer |
 | Pós-processamento temporal | Por fazer |
 | Avaliação quantitativa e qualitativa | Por fazer |
@@ -38,6 +42,7 @@ tarefa, está em [`docs/markdown/passos_futuros.md`](docs/markdown/passos_futuro
 │   ├── limpar_csv.py           CSV → Parquet (colunas úteis, label binário)
 │   ├── dividir_dataset.py      Divisão por trajetória completa
 │   ├── preparar_dados.py       Divisão + t_rel + normalização ajustada ao treino
+│   ├── criar_janelas.py        Janelas sobrepostas por pontos ou por tempo
 │   ├── verificar_divisao.py    Confirma a divisão (ids, pontos e trajetórias)
 │   ├── analisar_gaps.py        Estudo dos gaps temporais (limiar e possíveis fusões)
 │   └── main.py                 Executa o pipeline de ponta a ponta
@@ -104,6 +109,25 @@ a partir do CSV.
 Colunas finais dos conjuntos normalizados:
 `id, t_rel, label, x, y, signed_turn, time_gap, euc_speed, distanceToShore`.
 
+## Janelamento (em curso)
+
+`criar_janelas.py` transforma cada trajetória em janelas com sobreposição, em
+dois modos: por número de pontos (`n_pontos`) ou por duração (`duracao_s`).
+Cada janela guarda o `id`, as posições na trajetória e os `t_rel` no `meta`;
+no modo tempo há padding no fim, com `mascara` e `y = -1`. As janelas podem ser
+guardadas em `.npz` (`output_path`) e relidas com `carregar_janelas`.
+
+Parâmetros decididos para a experiência principal (modo tempo):
+
+- janelas de **30 min**, sobreposição de **50%**;
+- `gap_max_s=600`: nenhuma janela atravessa gaps superiores a 10 min;
+- `min_pontos=30`: descarta janelas com contexto insuficiente;
+- `T` sem limite (590 pontos no treino); o padding (~69% de `X`) será tratado
+  no `batching`/modelo, não limitando `T`.
+
+No treino (86 trajetórias) isto dá **7 685 janelas** e apenas **0,37%** dos
+pontos sem janela. Falta gerar validação/teste e implementar o batching.
+
 ## Configuração do ambiente
 
 Requer Python 3.12 ou superior. O ambiente local foi testado com Python
@@ -139,6 +163,7 @@ python src/dividir_dataset.py   # ais_123.parquet → treino/teste/validação
 python src/preparar_dados.py    # divisão + t_rel + normalização
 python src/verificar_divisao.py # confirma a divisão
 python src/analisar_gaps.py     # estudo dos gaps temporais
+python src/criar_janelas.py     # janelas sobrepostas (pontos ou tempo)
 ```
 
 ## Decisões de desenho
@@ -150,6 +175,8 @@ python src/analisar_gaps.py     # estudo dos gaps temporais
   `time_gap` normalizado continua a ser a feature usada pelo modelo.
 - **Sem reamostragem nem pesos de classe**, preservando o desequilíbrio real.
 - **Semente fixa** na divisão, para resultados reprodutíveis.
+- **Janelas de 30 min com 50% de sobreposição** (modo principal) e corte em
+  gaps > 10 min; `min_pontos=30` e `T` sem limite, com padding mascarado.
 
 ## Documentação
 

@@ -7,8 +7,9 @@ Legenda: `[x]` feito · `[~]` parcialmente feito / por confirmar · `[ ]` por fa
 Ficheiros já criados:
 - `limpar_csv.py` → `limpar_csv_para_parcelar` (CSV → Parquet limpo, label binário, ordenado por `(id, t)`)
 - `dividir_dataset.py` → `dividir_parquet` (divisão por trajetória completa)
-- `verificar_divisao.py` → `verificar_divisao` (confirma ids sem sobreposição, total de pontos e trajetórias completas)
 - `preparar_dados.py` → `preparar_dados` (divisão + `t_rel` bruto + normalização mediana/IQR ajustada só ao treino + JSON de parâmetros)
+- `criar_janelas.py` → `criar_janelas` (janelas por nº de pontos **ou** por duração, com sobreposição, corte em gaps opcional, máscara de padding) e `carregar_janelas`
+- `verificar_divisao.py` → `verificar_divisao` (confirma ids sem sobreposição, total de pontos e trajetórias completas)
 - `analisar_gaps.py` → `analisar_gaps` / `resumo_gaps` / `candidatos_fusao` (estudo dos gaps temporais e deteção de possíveis trajetórias fundidas)
 
 Dataset: **123 trajetórias** (confirmado ao voltar a descarregar o dataset do Kaggle; a proposta original indicava 128, valor entretanto corrigido) → divisão 70/15/15 = 86 / 18 / 19.
@@ -18,6 +19,23 @@ Decisões tomadas:
 - Normalização mediana/IQR em todas as colunas contínuas, incluindo `time_gap` (sem `log1p`)
 - `t_rel` (segundos desde o início da trajetória) mantido em bruto, à parte, para janelas e deteção de gaps
 - Janelas a testar das duas formas: primeiro por nº de pontos, depois por duração temporal fixa
+- Modo principal: **tempo** (30 min, sobreposição 50%), por dar contexto temporal homogéneo; modo pontos fica como alternativa/ablação
+- `gap_max_s = 600` (10 min), `min_pontos = 30` e `T` sem limite; padding tratado no classificador
+
+## Mapa das secções
+
+| Secção | Estado | O que se faz |
+| --- | --- | --- |
+| 0. Ambiente | Concluída | venv e bibliotecas de dados/ML |
+| 1. Dados e verificação | Concluída | limpeza, divisão, qualidade e gaps |
+| 2. Normalização | Quase concluída | normalização ajustada ao treino |
+| 3. Janelamento | **Em curso** | janelas sobrepostas, gaps, padding, batching |
+| 4. Baselines | Por começar | HMM, modelo clássico e aproximação a Wu et al. |
+| 5. Classificador | Por começar | treinar a rede de janelas |
+| 6. Pós-processamento | Por começar | agregar/suavizar previsões e estabilizar segmentos |
+| 7. Avaliação quantitativa | Por começar | métricas por ponto/segmento e comparações |
+| 8. Avaliação qualitativa e HCAI | Por começar | mapas, explicabilidade, confiança, dashboard |
+| 9. Escrita e entrega | Por começar | documentar decisões, resultados e entregar |
 
 ---
 
@@ -45,33 +63,86 @@ Decisões tomadas:
 - [ ] Testar o modelo com e sem `x`, `y` (posições absolutas) para ver se decora zonas geográficas
 - [ ] Guardar o JSON junto com o modelo final (necessário para a inferência e o dashboard)
 
-## 3. Janelamento com sobreposição  ← **próximo passo**
-Valores propostos (por confirmar):
-- Por pontos: 256, sobreposição 50% (testar depois 128 e 512)
-- Por tempo: 30 min, sobreposição 50% (testar depois 15 e 60 min)
-- Rótulo **por ponto**
-- Sem padding: todas as trajetórias são bem mais longas que uma janela; só a última janela de cada trajetória é recuada para terminar no fim
-- Janelas que atravessam um `time_gap` acima de ~10 min são partidas nesse ponto (limiar configurável)
+## 3. Janelamento com sobreposição  ← **em curso**
 
-Tarefas:
-- [ ] Função `criar_janelas(parquet, ...)` com modo "pontos" e modo "tempo"
-- [ ] Sobreposição configurável: 0%, 25%, 50%, 75%
-- [ ] Não atravessar fronteiras entre `id`
-- [ ] Guardar por janela o `id` e os índices dos pontos na trajetória original (necessário para o pós-processamento)
-- [ ] Opcional: cache das janelas (`.npz`)
+Objetivo: transformar as trajetórias normalizadas em janelas com sobreposição (por pontos ou por tempo), com máscara para padding, prontas para o classificador.
+
+### 3.1. Decisões tomadas
+- [x] Rótulo **por ponto** (não por janela)
+- [x] Modo principal: **tempo**, 30 min, sobreposição 50% (comparar depois com 15/60 min)
+- [x] Modo alternativo: **pontos**, 256, sobreposição 50% (testar 128/512)
+- [x] Sem padding no modo pontos: só a última janela de cada trajetória é recuada para terminar no fim
+- [x] No modo tempo o nº de pontos varia por janela: padding no fim + `mascara` (`y = -1` no padding)
+- [x] `gap_max_s = 600` (10 min): nenhuma janela atravessa gaps maiores
+- [x] `min_pontos = 30`: descarta janelas sem contexto suficiente
+- [x] `T` sem limite (590 no treino); o padding (~69% de `X`) é tratado no treino, não limitando `T`
+- [x] Corte por `id`: nenhuma janela atravessa trajetórias
+
+### 3.2. Resultados no treino (86 trajetórias)
+- [x] Modo pontos (256, 50%, sem gap): 5 473 janelas, `T = 256`; 453 janelas cobrem mais de 60 min
+- [x] Modo pontos com `gap_max_s=600`: 5 436 janelas e 3 376 pontos sem janela (≈ 0,5%)
+- [x] Modo tempo (30 min, 50%, `gap_max_s=600`, `min_pontos=2`): 7 916 janelas, `T = 590`, pontos por janela 6 / 173 / 590, 1 347 pontos sem janela (≈ 0,2%), padding ≈ 70%
+- [x] `min_pontos=30`: 7 685 janelas e 2 617 pontos sem janela (≈ 0,4%); remove as 231 janelas com <30 pontos
+- [x] Confirmado que limitar `T` quase não reduz o padding (T=494 → ≈64%, T=361 → ≈50%) e perde janelas densas
+
+Sensibilidade de `min_pontos` (treino, 30 min, 50%, `gap_max_s=600`, `T = 590`):
+
+| `min_pontos` | janelas | pontos sem janela | padding |
+| --- | --- | --- | --- |
+| 2 | 7 916 | 1 347 (0,19%) | 70,0% |
+| 20 | 7 745 | 2 134 (0,30%) | 69,4% |
+| **30** | **7 685** | **2 617 (0,37%)** | **69,2%** |
+| 50 | 7 388 | 7 073 (1,00%) | 68,2% |
+
+### 3.3. Gerar e guardar as janelas finais (treino/validação/teste)
+Objetivo: produzir os `.npz` finais com os mesmos parâmetros e confirmar a cobertura em cada conjunto.
+
+- [ ] Confirmar os parâmetros finais: `duracao_s=30*60`, `sobreposicao_pct=50`, `gap_max_s=600`, `min_pontos=30`
+- [ ] Criar `src/gerar_janelas.py` que gera e guarda `data/janelas_treino.npz`, `data/janelas_validacao.npz` e `data/janelas_teste.npz`
+- [ ] Registar por conjunto: `n_janelas`, `T`, `pontos_descartados` e cobertura
+- [ ] Confirmar que `T` pode variar entre conjuntos e que o modelo lida com isso (packing/máscara)
+- [ ] Verificar a integridade: metas dentro do `id` certo e nenhuma janela a atravessar um gap > 600 s
+
+### 3.4. Política para pontos sem janela
+Objetivo: decidir o que fazer aos pontos que ficam fora de todas as janelas.
+
+- [ ] Excluir esses pontos das métricas (ficam sem previsão)
+- [ ] Reportar a cobertura por conjunto (≈ 99,6% no treino com `min_pontos=30`)
+- [ ] Documentar a decisão no relatório
+
+### 3.5. Carregamento e batching (para o classificador)
+Objetivo: alimentar o modelo com as janelas, ignorando o padding de forma correta.
+
+- [ ] Implementar Dataset/DataLoader a partir do `.npz`, respeitando a `mascara`
+- [ ] Ignorar o padding na loss (`y = -1`)
+- [ ] GRU: `pack_padded_sequence`; CNN: convoluções/pooling mascarados
+- [ ] Agrupar janelas por tamanho (bucketing) para reduzir o padding por batch
+- [ ] Testar um batch pequeno e validar formas, máscara e loss
+
+### 3.6. Ablações e variantes a testar (mais tarde)
+- [ ] Sobreposição: 0%, 25%, 50%, 75%
+- [ ] Duração: 15, 30 e 60 min
+- [ ] Modo pontos (128/256/512) vs modo tempo
+- [ ] Sem `x` e `y` (posições absolutas) vs com todas as features
 
 ## 4. Baselines
+Objetivo: ter referências simples e interpretáveis para comparar com a rede.
+
 - [ ] HMM simples sobre `euc_speed` e `signed_turn` (Peel e Good, 2011)
 - [ ] Modelo clássico sobre *features* agregadas por janela (ex.: gradient boosting)
 - [ ] Reimplementar ou aproximar Wu et al. (2022)
 
 ## 5. Classificador de janelas
+Objetivo: treinar o modelo principal que classifica cada ponto de cada janela.
+
 - [ ] Escolher o modelo principal (candidatos: 1D-CNN, BiGRU, com atenção opcional)
 - [ ] Definir função de custo, otimizador e hiperparâmetros (só treino e validação)
 - [ ] Desequilíbrio de classes: a proposta mantém o natural, sem reamostragem nem pesos
 - [ ] Treinar e guardar o melhor modelo
 
 ## 6. Pós-processamento temporal
+Objetivo: combinar as previsões das janelas sobrepostas e gerar segmentos contíguos e estáveis.
+
 - [ ] Agregação das previsões de janelas sobrepostas (votação ponderada)
 - [ ] Suavização (HMM ou votação por vizinhança)
 - [ ] Segmentos contíguos e estáveis
@@ -83,6 +154,8 @@ Tarefas:
 - [ ] Robustez face à sobreposição (0, 25, 50, 75%) e à regularização temporal
 
 ## 7. Avaliação quantitativa
+Objetivo: medir o desempenho e comparar com os baselines.
+
 - [ ] Métricas por ponto e por segmento: precisão, sensibilidade, F1, IoU
 - [ ] Estabilidade: fragmentação e erro de fronteira
 - [ ] Comparação com os baselines
@@ -90,6 +163,8 @@ Tarefas:
 - [ ] Responder às RQ1, RQ2 e RQ3
 
 ## 8. Avaliação qualitativa e HCAI
+Objetivo: mostrar os resultados e sustentar a decisão humana (human-on-the-loop).
+
 - [ ] Mapas com segmentos preditos sobrepostos à verdade de referência
 - [ ] Casos de sucesso e falha
 - [ ] Explicabilidade com SHAP
@@ -97,6 +172,8 @@ Tarefas:
 - [ ] Dashboard de prova de conceito
 
 ## 9. Escrita e entrega
+Objetivo: documentar o trabalho e preparar a entrega.
+
 - [x] Corrigir "128" para "123" na proposta/relatório (proposta corrigida, alterações a vermelho)
 - [ ] Documentar decisões de desenho (janela, rótulo, IDs com o mesmo prefixo, normalização, `t_rel`)
 - [ ] Reportar a distribuição de classes por conjunto
