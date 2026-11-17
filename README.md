@@ -4,7 +4,8 @@ Projeto da unidade curricular **IA Centrada no Humano (MIACD, Universidade de
 Coimbra)**. O objetivo é classificar automaticamente, ao longo de uma
 trajetória AIS, os intervalos de **pesca** e de **navegação**, de forma robusta
 e interpretável, como apoio à decisão de inspetores humanos
-(*human-in-the-loop*).
+(*human-on-the-loop*): o sistema apoia a decisão, mas a decisão final é sempre
+humana.
 
 A motivação é o combate à pesca ilegal, não declarada e não regulamentada
 (IUU). O sistema proposto combina **janelas sobrepostas** e
