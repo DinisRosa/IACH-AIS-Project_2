@@ -23,15 +23,24 @@
 - Only commit when explicitly asked. Stage only the files relevant to the
   request.
 
+## Commit messages
+
+- Follow the existing history: a concise subject `tipo(scope): resumo no
+  imperativo` (e.g. `feat(dados): ...`, `docs(plano): ...`), then a blank line.
+- Write a detailed body instead of a one-liner: what changed, the key decisions,
+  relevant results and how it was verified. Use short paragraphs or bullets for
+  multi-file changes.
+- Read `git log` for style before committing. Write in Portuguese.
+
 ## Data and generated artifacts
 
 - `data/` holds local inputs and generated data and is ignored by Git
-  (`*.csv`, `*.parquet`, `*.json`). Do not commit downloaded datasets or
-  pipeline outputs.
+  (`*.csv`, `*.parquet`, `*.json`, `*.npz`). Do not commit downloaded datasets
+  or pipeline outputs.
 - Preserve the source CSV `data/123_fishing_trajs.csv`. Regenerate derived
   files (`ais_123.parquet`, `treino_norm.parquet`, `teste_norm.parquet`,
-  `validacao_norm.parquet`, `normalizacao.json`) with `python src/main.py`
-  instead of committing them.
+  `validacao_norm.parquet`, `normalizacao.json`, `janelas_*.npz`,
+  `janelas_resumo.json`) with `python src/main.py` instead of committing them.
 - Leave virtual environments (`IACH_AIS_venv/`), caches and LaTeX build
   intermediates out of commits.
 
