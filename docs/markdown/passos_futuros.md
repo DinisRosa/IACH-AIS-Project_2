@@ -10,6 +10,8 @@ Ficheiros já criados:
 - `preparar_dados.py` → `preparar_dados` (divisão + `t_rel` bruto + normalização mediana/IQR ajustada só ao treino + JSON de parâmetros)
 - `criar_janelas.py` → `criar_janelas` (janelas por nº de pontos **ou** por duração, com sobreposição, corte em gaps opcional, máscara de padding) e `carregar_janelas`
 - <span style="color:red">`gerar_janelas.py` → `gerar_janelas` (gera os três `.npz` finais, verifica a integridade e escreve `janelas_resumo.json`; adicionado a 17/11/2026)</span>
+- <span style="color:green">`dataset_janelas.py` → `DatasetJanelas`, `criar_dataloader`, `BucketBatchSampler` e `perda_mascarada` (lê os `.npz`, respeita a `mascara`/`y=-1`, trata o `time_gap[0]` pós-gap e faz bucketing; adicionado a 17/11/2026)</span>
+- <span style="color:green">`testar_dataset_janelas.py` → teste de formas, máscara, `time_gap[0]`, loss mascarada e packing com BiGRU (adicionado a 17/11/2026)</span>
 - `verificar_divisao.py` → `verificar_divisao` (confirma ids sem sobreposição, total de pontos e trajetórias completas)
 - `analisar_gaps.py` → `analisar_gaps` / `resumo_gaps` / `candidatos_fusao` (estudo dos gaps temporais e deteção de possíveis trajetórias fundidas)
 
@@ -22,6 +24,7 @@ Decisões tomadas:
 - Janelas a testar das duas formas: primeiro por nº de pontos, depois por duração temporal fixa
 - Modo principal: **tempo** (30 min, sobreposição 50%), por dar contexto temporal homogéneo; modo pontos fica como alternativa/ablação
 - `gap_max_s = 600` (10 min), `min_pontos = 30` e `T` sem limite; padding tratado no classificador
+- <span style="color:green">`time_gap[0]` é zerado em memória apenas nas janelas que começam depois de um gap > 600 s (evita o valor ≈7 860 e o sinal artificial de “começa após gap”); os `.npz` ficam intactos</span>
 
 ## Mapa das secções
 
@@ -30,7 +33,7 @@ Decisões tomadas:
 | 0. Ambiente | Concluída | venv e bibliotecas de dados/ML |
 | 1. Dados e verificação | Concluída | limpeza, divisão, qualidade e gaps |
 | 2. Normalização | Quase concluída | normalização ajustada ao treino |
-| 3. Janelamento | <span style="color:red">**Quase concluída**</span> | janelas sobrepostas, gaps, padding, batching |
+| 3. Janelamento | <span style="color:green">**Quase concluída** (3.1–3.3 feitos e 3.5 feito para GRU; faltam 3.4 e 3.6)</span> | janelas sobrepostas, gaps, padding, batching |
 | 4. Baselines | Por começar | HMM, modelo clássico e aproximação a Wu et al. |
 | 5. Classificador | Por começar | treinar a rede de janelas |
 | 6. Pós-processamento | Por começar | agregar/suavizar previsões e estabilizar segmentos |
@@ -64,7 +67,7 @@ Decisões tomadas:
 - [x] `t_rel` bruto à parte
 - [x] Verificar distribuições normalizadas (`describe`)
 
-## 3. Janelamento com sobreposição  ← <span style="color:red">**quase concluído** (janelas geradas em 17/11/2026)</span>
+## 3. Janelamento com sobreposição  ← <span style="color:green">**quase concluído** (3.1–3.3 feitos e 3.5 feito para GRU em 17/11/2026; faltam 3.4 e 3.6)</span>
 
 Objetivo: transformar as trajetórias normalizadas em janelas com sobreposição (por pontos ou por tempo), com máscara para padding, prontas para o classificador.
 
@@ -119,14 +122,16 @@ Objetivo: decidir o que fazer aos pontos que ficam fora de todas as janelas.
 - [ ] Reportar a cobertura por conjunto (≈ 99,6% no treino com `min_pontos=30`)
 - [ ] Documentar a decisão no relatório
 
-### 3.5. Carregamento e batching (para o classificador)
+### 3.5. Carregamento e batching (para o classificador)  ← <span style="color:green">**feito para GRU em 17/11/2026**</span>
 Objetivo: alimentar o modelo com as janelas, ignorando o padding de forma correta.
 
-- [ ] Implementar Dataset/DataLoader a partir do `.npz`, respeitando a `mascara`
-- [ ] Ignorar o padding na loss (`y = -1`)
-- [ ] GRU: `pack_padded_sequence`; CNN: convoluções/pooling mascarados
-- [ ] Agrupar janelas por tamanho (bucketing) para reduzir o padding por batch
-- [ ] Testar um batch pequeno e validar formas, máscara e loss
+- [x] Implementar Dataset/DataLoader a partir do `.npz`, respeitando a `mascara`
+- [x] Ignorar o padding na loss (`y = -1`)
+- [~] GRU: `pack_padded_sequence`; CNN: convoluções/pooling mascarados
+- [x] Agrupar janelas por tamanho (bucketing) para reduzir o padding por batch
+- [x] Testar um batch pequeno e validar formas, máscara e loss
+
+<span style="color:green">Implementado em `src/dataset_janelas.py` e testado por `src/testar_dataset_janelas.py`; `main.py` corre o teste no fim e o notebook tem a secção 5. No treino: 7 685 janelas, `T=590`, padding por batch 3,9% com bucketing vs 62,5% sem; `time_gap[0]=0` em 34 janelas pós-gap; loss mascarada e `pack_padded_sequence` com BiGRU OK. A parte CNN continua por fazer.</span>
 
 ### 3.6. Ablações e variantes a testar (mais tarde)
 - [ ] Sobreposição: 0%, 25%, 50%, 75%

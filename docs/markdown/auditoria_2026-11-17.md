@@ -16,6 +16,15 @@ as afirmações foram confirmadas executando o código e medindo os dados.
 > regenerados (estão ignorados pelo Git) e a LaTeX foi compilada em modo de
 > teste, com restauro do PDF e limpeza dos artefactos. Antes da criação deste
 > documento, o repositório estava com `git status` limpo.
+>
+> <span style="color:green">**Atualização pós-auditoria (17/11/2026):** foram
+> criados `src/gerar_janelas.py` (três `.npz` e `janelas_resumo.json`, com
+> verificação de integridade) e `src/dataset_janelas.py` /
+> `src/testar_dataset_janelas.py` (Dataset, DataLoader, bucketing, loss
+> mascarada e packing). O `main.py` passou a correr o teste no fim e o notebook
+> ganhou a secção 5. As referências de linha ao plano e as afirmações de que
+> estes ficheiros não existiam descrevem o estado anterior; as notas a verde
+> abaixo indicam o que ficou resolvido.</span>
 
 ---
 
@@ -45,6 +54,8 @@ as afirmações foram confirmadas executando o código e medindo os dados.
 - Tudo o que está `[ ]` nas secções 3.3 a 9 está de facto por fazer, com
   pequenas exceções de documentação/cobertura já parcialmente produzida
   (ver §8).
+  <span style="color:green">**Atualização:** 3.3 foi feito e 3.5 foi feito
+  para GRU; 3.4 e 3.6 continuam pendentes.</span>
 - O notebook executa de ponta a ponta; a LaTeX compila; os 31 pacotes
   pinados estão instalados nas versões pedidas.
 
@@ -343,6 +354,10 @@ Isto confirma que `T` varia entre conjuntos (590 no treino, 531 na validação,
 481 no teste) e que o modelo terá de lidar com isso. Ainda não existe
 `src/gerar_janelas.py` nem os `.npz` finais.
 
+<span style="color:green">**Atualização:** `src/gerar_janelas.py` e os três
+`.npz` já existem; os valores de validação e teste estão registados em
+`passos_futuros.md` §3.3 e em `data/janelas_resumo.json`.</span>
+
 ---
 
 ## 8. Estado dos itens do plano
@@ -354,7 +369,7 @@ Isto confirma que `T` varia entre conjuntos (590 no treino, 531 na validação,
 | 0. Ambiente | Concluída | Confirmado |
 | 1. Dados e verificação | Concluída | Confirmado, com ressalva na qualidade (§3.3) |
 | 2. Normalização | Quase concluída | **Desatualizado**: está concluída |
-| 3. Janelamento | Em curso | Confirmado: 3.1/3.2 feitos, 3.3–3.6 não |
+| 3. Janelamento | <span style="color:green">Quase concluída</span> | <span style="color:green">3.1–3.3 feitos e 3.5 feito para GRU; faltam 3.4 e 3.6</span> |
 | 4. Baselines | Por começar | Confirmado |
 | 5. Classificador | Por começar | Confirmado |
 | 6. Pós-processamento | Por começar | Confirmado |
@@ -407,11 +422,17 @@ Isto confirma que `T` varia entre conjuntos (590 no treino, 531 na validação,
 - **3.3**: `src/gerar_janelas.py` não existe; `data/janelas_treino.npz`,
   `janelas_validacao.npz` e `janelas_teste.npz` não existem; não há registo
   por conjunto nem verificação formal de T.
+  <span style="color:green">**Resolvido:** `src/gerar_janelas.py` e os três
+  `.npz` foram criados; ver `passos_futuros.md` §3.3 e
+  `data/janelas_resumo.json`.</span>
 - **3.4**: política para pontos sem janela não está decidida/documentada num
   relatório.
 - **3.5**: não há `Dataset`/`DataLoader`, loss com `y=-1`,
   `pack_padded_sequence`, convoluções/pooling mascarados, bucketing nem teste
   de batch.
+  <span style="color:green">**Resolvido para GRU:** `DatasetJanelas`,
+  `criar_dataloader`, bucketing, `perda_mascarada` e `pack_padded_sequence`
+  implementados e testados; a CNN mascarada continua pendente.</span>
 - **3.6**: não há ablações de sobreposição (0/25/50/75%), duração
   (15/30/60 min), pontos (128/256/512) vs tempo, nem sem `x`/`y`.
 - **4**: não há HMM, modelo clássico nem aproximação a Wu et al.
@@ -478,8 +499,12 @@ Isto confirma que `T` varia entre conjuntos (590 no treino, 531 na validação,
   depois das últimas alterações já são snapshots atuais.
 - O notebook commitado não tem outputs; a verificação é reproduzível, mas não
   fica registada no Git.
+  <span style="color:green">**Atualização:** o notebook foi reexecutado e
+  commitado com outputs.</span>
 - Não existe suite de testes no repositório; a validação é feita por scripts e
   pelo notebook.
+  <span style="color:green">**Atualização:** existe `src/testar_dataset_janelas.py`,
+  executado por `main.py` e pela secção 5 do notebook.</span>
 - O risco de fuga de informação entre IDs com o mesmo prefixo continua aberto;
   está identificado, mas não testado.
 
@@ -506,6 +531,9 @@ Isto confirma que `T` varia entre conjuntos (590 no treino, 531 na validação,
    `n_janelas`, `T`, `pontos_descartados`, cobertura e padding por conjunto
    (treino: 7 685/590; validação: 1 949/531/99,954%; teste:
    1 619/481/99,573%).
+   <span style="color:green">**Feito:** `src/gerar_janelas.py` criado, os três
+   `.npz` e `data/janelas_resumo.json` gerados, e os valores registados em
+   `passos_futuros.md` §3.3.</span>
 6. Separar `requirements.txt` curado de um `requirements.lock` gerado por
    `pip freeze`.
 7. Atualizar `AGENTS.md` e a redação da LaTeX sobre rótulo por ponto vs janela.
@@ -513,6 +541,10 @@ Isto confirma que `T` varia entre conjuntos (590 no treino, 531 na validação,
 9. Adicionar uma verificação de qualidade reproduzível (script) que cubra
    nulos, duplicados, `time_gap`, gamas e outliers de velocidade, e guardar o
    resultado no repositório.
+10. <span style="color:green">Implementar e testar o carregamento das janelas
+    (`Dataset`, `DataLoader`, loss mascarada, bucketing e packing).
+    **Feito para GRU:** ver `src/dataset_janelas.py`,
+    `src/testar_dataset_janelas.py`, `main.py` e a secção 5 do notebook.</span>
 
 ## 13. Limitações da auditoria
 
@@ -521,6 +553,8 @@ Isto confirma que `T` varia entre conjuntos (590 no treino, 531 na validação,
   exatamente como descrito; foi verificado o estado atual e a reprodutibilidade
   do pipeline.
 - O notebook commitado não guarda outputs; esta auditoria executou-o agora.
+  <span style="color:green">**Atualização:** o notebook foi reexecutado e
+  commitado com outputs.</span>
 - Não existe suite de testes automáticos; as verificações foram feitas com
   scripts ad hoc e inspeção dos artefactos.
 - A qualidade matemática/estatística das escolhas (IQR, 30 min, 50%,
@@ -558,21 +592,26 @@ pdflatex proposta_pt
 
 ## Anexo B — Números-chave
 
-| Métrica | Valor |
-| --- | ---: |
-| Trajetórias | 123 |
-| Pontos totais | 1 026 279 |
-| Pontos de pesca | 775 521 |
-| Treino / teste / validação (IDs) | 86 / 18 / 19 |
-| Pontos treino / teste / validação | 706 522 / 146 225 / 173 532 |
-| Pesca treino / teste / validação | 75,61% / 73,51% / 77,12% |
-| Gaps >10 min | 174 |
-| Gaps >10 min no treino | 121 |
-| Maior gap | 13,103 h (`219012671-1`) |
-| Janelas tempo `min_pontos=30` | 7 685 |
-| T treino / validação / teste | 590 / 531 / 481 |
-| Pontos sem janela (treino) | 2 617 (0,370%) |
-| Padding treino | 69,19% |
-| Cobertura treino | 99,63% |
-| Cobertura validação / teste | 99,954% / 99,573% |
-| Pacotes pinados / instalados | 31 / 115 |
+| Métrica | Valor | <span style="color:green">Atualizado</span> |
+| --- | ---: | --- |
+| Trajetórias | 123 | <span style="color:green">17/11/2026 02:56</span> |
+| Pontos totais | 1 026 279 | <span style="color:green">17/11/2026 02:56</span> |
+| Pontos de pesca | 775 521 | <span style="color:green">17/11/2026 02:56</span> |
+| Treino / teste / validação (IDs) | 86 / 18 / 19 | <span style="color:green">17/11/2026 02:56</span> |
+| Pontos treino / teste / validação | 706 522 / 146 225 / 173 532 | <span style="color:green">17/11/2026 02:56</span> |
+| Pesca treino / teste / validação | 75,61% / 73,51% / 77,12% | <span style="color:green">17/11/2026 02:56</span> |
+| Gaps >10 min | 174 | <span style="color:green">17/11/2026 02:56</span> |
+| Gaps >10 min no treino | 121 | <span style="color:green">17/11/2026 02:56</span> |
+| Maior gap | 13,103 h (`219012671-1`) | <span style="color:green">17/11/2026 02:56</span> |
+| Janelas tempo `min_pontos=30` | 7 685 | <span style="color:green">17/11/2026 02:56</span> |
+| T treino / validação / teste | 590 / 531 / 481 | <span style="color:green">17/11/2026 02:56</span> |
+| Pontos sem janela (treino) | 2 617 (0,370%) | <span style="color:green">17/11/2026 02:56</span> |
+| Padding treino | 69,19% | <span style="color:green">17/11/2026 02:56</span> |
+| Cobertura treino | 99,63% | <span style="color:green">17/11/2026 02:56</span> |
+| Cobertura validação / teste | 99,954% / 99,573% | <span style="color:green">17/11/2026 02:56</span> |
+| Pacotes pinados / instalados | 31 / 115 | <span style="color:green">17/11/2026 02:56</span> |
+| Padding por batch com bucketing (treino) | <span style="color:green">3,9%</span> | <span style="color:green">17/11/2026 15:38</span> |
+| Janelas pós-gap com `time_gap[0]=0` (treino) | <span style="color:green">34</span> | <span style="color:green">17/11/2026 15:38</span> |
+| Teste Dataset/DataLoader | <span style="color:green">OK</span> | <span style="color:green">17/11/2026 15:38</span> |
+
+<span style="color:green">A coluna **Atualizado** usa `17/11/2026 02:56` para os valores da auditoria original (commit `2377e7d`) e `17/11/2026 15:38` para os três valores novos: padding por batch, janelas pós-gap e teste do Dataset/DataLoader.</span>
