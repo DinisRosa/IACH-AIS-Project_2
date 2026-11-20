@@ -10,6 +10,8 @@ trabalho seguinte do projeto.
 
 ## 1. Conclusão executiva
 
+<span style="color:yellow">Decisão atual dos dados: os outliers não são removidos, corrigidos ou limitados e todos os pontos ficam cobertos por pelo menos uma janela em treino, validação e teste. O janelamento usa `min_pontos=1` e cobertura curta para segmentos inferiores à duração nominal.</span>
+
 O projeto tem um **pipeline técnico de preparação de dados essencialmente
 concluído, reproduzível e verificado**. A limpeza, divisão, normalização,
 janelamento e infraestrutura de carregamento das janelas funcionam.
@@ -22,7 +24,7 @@ No entanto, a auditoria metodológica acrescenta uma ressalva importante:
 > ou indiretamente, o conjunto de teste.
 
 Assim, os parâmetros atuais — 30 minutos, 50% de sobreposição,
-`gap_max_s=600` e `min_pontos=30` — devem ser tratados como **configuração de
+`gap_max_s=600` e `min_pontos=1` — devem ser tratados como **configuração de
 referência provisória**, não ainda como configuração final congelada.
 
 ### 1.1. Feito e bom
@@ -40,9 +42,8 @@ referência provisória**, não ainda como configuração final congelada.
 
 ### 1.2. Feito, mas deve ser modificado ou formalizado
 
-- A qualidade dos dados tem outliers e uma discrepância temporal ainda sem
-  decisão documentada.
-- A política para os pontos que ficam sem janela ainda não está definida.
+- <span style="color:yellow">Outliers preservados sem tratamento; a discrepância temporal `t`/`time_gap` está documentada.</span>
+- <span style="color:yellow">Cobertura total de pontos definida e implementada.</span>
 - A origem e o processo de seleção dos parâmetros de janelamento não estão
   suficientemente registados.
 - Não está demonstrado historicamente que o teste foi usado apenas para
@@ -180,16 +181,16 @@ usando validação ou teste.
 duracao_s = 1800
 sobreposicao_pct = 50
 gap_max_s = 600
-min_pontos = 30
+min_pontos = 1
 ```
 
 Resultados verificados em `data/janelas_resumo.json`:
 
 | Conjunto | Janelas | T | Pontos sem janela | Cobertura | Padding |
 |---|---:|---:|---:|---:|---:|
-| Treino | 7 685 | 590 | 2 617 | 99,630% | 69,2% |
-| Validação | 1 949 | 531 | 79 | 99,954% | 66,6% |
-| Teste | 1 619 | 481 | 625 | 99,573% | 63,0% |
+| Treino | 7 992 | 590 | 0 | 100,000% | 70,3% |
+| Validação | 1 970 | 531 | 0 | 100,000% | 67,0% |
+| Teste | 1 714 | 481 | 0 | 100,000% | 64,9% |
 
 As listas `problemas` do resumo estão vazias. Foram confirmados IDs,
 posições, `t_rel`, gaps, máscara e padding.
@@ -237,7 +238,8 @@ primeiros pontos das trajetórias. A diferença deve ser uniformizada.
 
 ### 4.2. Outliers
 
-Persistem sem decisão:
+<span style="color:yellow">Decisão atual: os outliers são preservados, sem remoção,
+correção ou clip. Foram identificados:</span>
 
 - 63 pontos com `euc_speed > 30` nós;
 - 5 pontos com mais de 50 nós;
@@ -246,9 +248,6 @@ Persistem sem decisão:
 - `time_gap` normalizado máximo aproximado de 7 860;
 - `euc_speed` normalizado máximo aproximado de 19,2.
 
-Não se deve remover, corrigir ou clipar estes valores automaticamente.
-Primeiro deve ser tomada uma decisão explícita e comparada, se necessário,
-uma variante original com uma variante tratada.
 
 ### 4.3. Inconsistência temporal
 
@@ -409,10 +408,8 @@ Os resultados estruturais de treino registados incluem:
    referência provisória e reservar o teste para avaliação final.
 2. **Criar um registo de experiências:** configuração, conjunto usado,
    métrica, seed, data, resultado e decisão.
-3. **Fechar a qualidade dos dados:** decidir o tratamento dos outliers e
-   investigar o desalinhamento `t`/`time_gap`.
-4. **Definir a política para pontos sem janela:** não os excluir
-   silenciosamente; reportar cobertura e a regra nas métricas.
+3. <span style="color:yellow">**Qualidade dos dados fechada:** outliers preservados e discrepância `t`/`time_gap` documentada.</span>
+4. <span style="color:yellow">**Cobertura fechada:** todos os pontos têm pelo menos uma janela; os outliers não entram em tratamento especial.</span>
 5. **Explorar e selecionar janelas apenas com treino/validação**, seguindo
    uma grelha previamente definida.
 6. **Investigar IDs com prefixos comuns** e executar uma divisão agrupada
@@ -427,16 +424,16 @@ Os resultados estruturais de treino registados incluem:
 ### Etapa A — Fechar a auditoria metodológica
 
 - confirmar a proveniência dos parâmetros atuais;
-- marcar 30 min/50%/600 s/30 pontos como referência provisória;
+- marcar 30 min/50%/600 s/1 ponto como configuração provisória de cobertura;
 - criar o protocolo treino → validação → teste;
 - registar explicitamente que as coberturas do teste são apenas controlo de
   integridade até ao congelamento.
 
 ### Etapa B — Fechar dados e cobertura
 
-- decidir a política de outliers;
-- investigar o desalinhamento temporal;
-- decidir a política para pontos sem janela;
+- outliers preservados sem remoção, correção ou clip;
+- desalinhamento temporal `t`/`time_gap` documentado;
+- cobertura total implementada e verificada;
 - investigar prefixos comuns;
 - guardar relatórios reproduzíveis.
 

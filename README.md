@@ -18,9 +18,9 @@ final.
 
 <span style="color:green">O pipeline principal de preparação está implementado: limpeza,
 divisão por trajetória, normalização, geração e verificação das janelas, e
-infraestrutura de carregamento em batches para GRU. A investigação da qualidade
-dos dados continua aberta quanto ao tratamento de anomalias. Também falta
-formalizar a política para pontos sem janela.</span> O plano completo, com o
+infraestrutura de carregamento em batches para GRU. <span style="color:yellow">Os
+outliers não são removidos ou corrigidos e todos os pontos têm cobertura por
+janelas. Falta apenas fechar ablações e a avaliação experimental.</span> O plano completo, com o
 estado de cada tarefa, está em
 [`docs/markdown/passos_futuros.md`](docs/markdown/passos_futuros.md).
 
@@ -31,7 +31,7 @@ estado de cada tarefa, está em
 | Divisão treino/teste/validação por trajetória | Concluído |
 | Verificação da divisão e análise de gaps | Concluído |
 | Normalização e parâmetros guardados em JSON | Concluído |
-| Janelamento e carregamento em batches | <span style="color:green">Infraestrutura implementada e verificada para GRU; faltam política de cobertura e ablações</span> |
+| Janelamento e carregamento em batches | <span style="color:yellow">Todos os pontos cobertos; outliers preservados; faltam ablações</span> |
 | Baselines ponto a ponto | <span style="color:green">Quatro modelos ajustados e medidos apenas no treino; falta seleção na validação e avaliação no teste</span> |
 | Classificador de janelas | Por fazer |
 | Pós-processamento temporal | Por fazer |
@@ -90,9 +90,9 @@ O desequilíbrio natural é mantido (sem reamostragem nem pesos de classe).
 | `teste_norm.parquet` | 18 trajetórias, normalizadas |
 | `validacao_norm.parquet` | 19 trajetórias, normalizadas |
 | `normalizacao.json` | Parâmetros de normalização ajustados ao treino |
-| <span style="color:red"><code>janelas_treino.npz</code></span> | <span style="color:red">7 685 janelas de treino (`T=590`), com máscara</span> |
-| <span style="color:red"><code>janelas_validacao.npz</code></span> | <span style="color:red">1 949 janelas de validação (`T=531`)</span> |
-| <span style="color:red"><code>janelas_teste.npz</code></span> | <span style="color:red">1 619 janelas de teste (`T=481`)</span> |
+| <span style="color:yellow"><code>janelas_treino.npz</code></span> | <span style="color:yellow">7 992 janelas de treino (`T=590`), cobertura 100%</span> |
+| <span style="color:yellow"><code>janelas_validacao.npz</code></span> | <span style="color:yellow">1 970 janelas de validação (`T=531`), cobertura 100%</span> |
+| <span style="color:yellow"><code>janelas_teste.npz</code></span> | <span style="color:yellow">1 714 janelas de teste (`T=481`), cobertura 100%</span> |
 | <span style="color:red"><code>janelas_resumo.json</code></span> | <span style="color:red">Resumo por conjunto: janelas, `T`, cobertura, padding e integridade</span> |
 
 As trajetórias não devem ser usadas como dados de entrada sem regenerar estes
@@ -129,15 +129,15 @@ no modo tempo há padding no fim, com `mascara` e `y = -1`.
 
 | Conjunto | Janelas | `T` | Pontos sem janela | Cobertura | Padding |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Treino | 7 685 | 590 | 2 617 | 99,63% | 69,2% |
-| Validação | 1 949 | 531 | 79 | 99,954% | 66,6% |
-| Teste | 1 619 | 481 | 625 | 99,573% | 63,0% |
+| Treino | 7 992 | 590 | 0 | 100,000% | 70,3% |
+| Validação | 1 970 | 531 | 0 | 100,000% | 67,0% |
+| Teste | 1 714 | 481 | 0 | 100,000% | 64,9% |
 
 Parâmetros da experiência principal (modo tempo):
 
 - janelas de **30 min**, sobreposição de **50%**;
 - `gap_max_s=600`: nenhuma janela atravessa gaps superiores a 10 min;
-- `min_pontos=30`: descarta janelas com contexto insuficiente;
+- <span style="color:yellow">`min_pontos=1`: todos os pontos têm cobertura; segmentos curtos recebem uma janela encostada ao fim.</span>
 - `T` sem limite (590 pontos no treino); o padding é tratado por máscara e
   `collate`, com bucketing para reduzir o padding por batch.
 
@@ -145,8 +145,8 @@ Parâmetros da experiência principal (modo tempo):
 bucketing por comprimento, loss mascarada e o tratamento em memória de
 `time_gap[0]` nas janelas após gaps longos. O packing com BiGRU foi verificado;
 a rede sequencial ainda não foi treinada. A cobertura observada é superior a
-99,5% nos três conjuntos, mas ainda falta decidir como os pontos sem janela
-entram nas métricas.</span>
+<span style="color:yellow">100% dos pontos ficam cobertos nos três conjuntos e os
+outliers são preservados sem remoção ou clipping.</span></span>
 
 ## Baselines ponto a ponto
 
@@ -161,7 +161,7 @@ HistGradientBoostingClassifier. Guardam-se os modelos em `data/modelos/baselines
 e o resumo em `data/baselines_treino.json`. As métricas deste ficheiro são
 in-sample e não substituem avaliação em validação ou teste.
 
-<span style="color:green">A cobertura é superior a 99,5% nos três conjuntos e a verificação de integridade não encontrou problemas. O batching para GRU está implementado; a política para pontos sem janela continua pendente.</span>
+<span style="color:yellow">A cobertura é 100% nos três conjuntos, os outliers permanecem no dado e a verificação de integridade não encontrou problemas. O batching para GRU está implementado.</span>
 
 ## Configuração do ambiente
 
@@ -223,7 +223,7 @@ python src/gerar_janelas.py     # gera e guarda as janelas dos três conjuntos
 - **Sem reamostragem nem pesos de classe**, preservando o desequilíbrio real.
 - **Semente fixa** na divisão, para resultados reprodutíveis.
 - **Janelas de 30 min com 50% de sobreposição** (modo principal) e corte em
-  gaps > 10 min; `min_pontos=30` e `T` sem limite, com padding mascarado.
+  gaps > 10 min; <span style="color:yellow">`min_pontos=1`, cobertura total e `T` sem limite, com padding mascarado.</span>
 - <span style="color:red">**Janelas finais persistidas e verificadas** (17/11/2026): os três `.npz` são gerados por `gerar_janelas.py`, que confirma ids, posições, `t_rel`, gaps, máscara e padding.</span>
 
 ## Documentação

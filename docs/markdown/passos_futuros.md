@@ -4,6 +4,8 @@ Legenda: `[x]` feito · `[~]` parcialmente feito / por confirmar · `[ ]` por fa
 
 ## Estado atual (20/11/2026)
 
+<span style="color:yellow">Decisão atual: os outliers não são removidos, corrigidos ou limitados. Todos os pontos das três divisões ficam cobertos por pelo menos uma janela. A configuração temporal usa `min_pontos=1`, com janela curta para segmentos inferiores a 30 minutos.</span>
+
 Ficheiros já criados:
 - `limpar_csv.py` → `limpar_csv_para_parcelar` (CSV → Parquet limpo, label binário, ordenado por `(id, t)`)
 - `dividir_dataset.py` → `dividir_parquet` (divisão por trajetória completa)
@@ -25,7 +27,7 @@ Decisões tomadas:
 - `t_rel` (segundos desde o início da trajetória) mantido em bruto, à parte, para janelas e deteção de gaps
 - Janelas a testar das duas formas: primeiro por nº de pontos, depois por duração temporal fixa
 - Modo principal: **tempo** (30 min, sobreposição 50%), por dar contexto temporal homogéneo; modo pontos fica como alternativa/ablação
-- `gap_max_s = 600` (10 min), `min_pontos = 30` e `T` sem limite; padding tratado no classificador
+- <span style="color:yellow">`gap_max_s = 600` (10 min), `min_pontos = 1` e `T` sem limite; todos os pontos ficam cobertos e os outliers são preservados</span>
 - <span style="color:green">`time_gap[0]` é zerado em memória apenas nas janelas que começam depois de um gap > 600 s (evita o valor ≈7 860 e o sinal artificial de “começa após gap”); os `.npz` ficam intactos</span>
 
 ## Mapa das secções
@@ -33,7 +35,7 @@ Decisões tomadas:
 | Secção | Estado | O que se faz |
 | --- | --- | --- |
 | 0. Ambiente | Concluída | venv e bibliotecas de dados/ML |
-| 1. Dados e verificação | <span style="color:green">Parcial — limpeza, divisão e gaps verificados; anomalias de qualidade identificadas, tratamento por decidir</span> | limpeza, divisão, qualidade e gaps |
+| 1. Dados e verificação | <span style="color:yellow">Fechado — limpeza, divisão e gaps verificados; outliers preservados e cobertura total definida</span> | limpeza, divisão, qualidade e gaps |
 | 2. Normalização | Concluída | normalização ajustada ao treino |
 | 3. Janelamento | <span style="color:green">**Quase concluída** (3.1–3.3 feitos e 3.5 feito para GRU; faltam 3.4 e 3.6)</span> | janelas sobrepostas, gaps, padding, batching |
 | 4. Baselines | <span style="color:green">Parcial — baselines ponto a ponto ajustados só no treino; falta seleção na validação e avaliação no teste</span> | HMM, modelo clássico por janela e aproximação a Wu et al. |
@@ -53,7 +55,7 @@ Decisões tomadas:
 
 ## 1. Dados e verificação
 - [x] Conversão CSV → Parquet (colunas mantidas, label binário, ordenação)
-- [~] Verificação de qualidade (nulos e duplicados feitos; outliers, desalinhamento temporal e IDs por prefixo investigados, sem decisão final)
+- <span style="color:yellow">[x] Verificação de qualidade: nulos, duplicados e gaps verificados; outliers preservados; desalinhamento temporal documentado; IDs por prefixo por avaliar</span>
 - [x] Divisão por trajetória completa (treino/teste/validação)
 - [x] Contagem de trajetórias confirmada: 123 (dataset descarregado de novo do Kaggle, para excluir erro de cópia)
 - [x] Duração das trajetórias vista via `t_rel` (mediana ≈ 15 h, mín. ≈ 6 h, máx. ≈ 85 h)
@@ -80,8 +82,8 @@ Objetivo: transformar as trajetórias normalizadas em janelas com sobreposição
 - [x] Sem padding no modo pontos: só a última janela de cada trajetória é recuada para terminar no fim
 - [x] No modo tempo o nº de pontos varia por janela: padding no fim + `mascara` (`y = -1` no padding)
 - [x] `gap_max_s = 600` (10 min): nenhuma janela atravessa gaps maiores
-- [x] `min_pontos = 30`: descarta janelas sem contexto suficiente
-- [x] `T` sem limite (590 no treino); o padding (~69% de `X`) é tratado no treino, não limitando `T`
+- <span style="color:yellow">[x] `min_pontos = 30`: experiência histórica; hoje a configuração usa 1 para garantir cobertura</span>
+- [x] `T` sem limite (590 no treino); o padding é tratado no treino, não limitando `T`
 - [x] Corte por `id`: nenhuma janela atravessa trajetórias
 
 ### 3.2. Resultados no treino (86 trajetórias)
@@ -107,11 +109,11 @@ Objetivo: produzir os `.npz` finais com os mesmos parâmetros e confirmar a cobe
 
 | Conjunto | Janelas | `T` | Pontos sem janela | Cobertura | Padding | Integridade |
 | --- | ---: | ---: | ---: | ---: | ---: | --- |
-| Treino | 7 685 | 590 | 2 617 | 99,630% | 69,2% | OK |
-| Validação | 1 949 | 531 | 79 | 99,954% | 66,6% | OK |
-| Teste | 1 619 | 481 | 625 | 99,573% | 63,0% | OK |
+| Treino | 7 992 | 590 | 0 | 100,000% | 70,3% | OK |
+| Validação | 1 970 | 531 | 0 | 100,000% | 67,0% | OK |
+| Teste | 1 714 | 481 | 0 | 100,000% | 64,9% | OK |
 
-- [x] Registar a configuração de referência atual: `duracao_s=30*60`, `sobreposicao_pct=50`, `gap_max_s=600`, `min_pontos=30` (a seleção final ainda depende da validação)
+- <span style="color:yellow">[x] Registar a configuração atual de cobertura: `duracao_s=30*60`, `sobreposicao_pct=50`, `gap_max_s=600`, `min_pontos=1`</span>
 - [x] Criar `src/gerar_janelas.py` que gera e guarda `data/janelas_treino.npz`, `data/janelas_validacao.npz` e `data/janelas_teste.npz`
 - [x] Registar por conjunto: `n_janelas`, `T`, `pontos_descartados` e cobertura
 - [x] Confirmar que `T` pode variar entre conjuntos e que o modelo lida com isso (packing/máscara)
@@ -120,9 +122,9 @@ Objetivo: produzir os `.npz` finais com os mesmos parâmetros e confirmar a cobe
 ### 3.4. Política para pontos sem janela
 Objetivo: decidir o que fazer aos pontos que ficam fora de todas as janelas.
 
-- [ ] Definir se os pontos sem janela ficam sem previsão e são excluídos das métricas
-- [x] Medir e reportar a cobertura por conjunto (treino 99,630%, validação 99,954%, teste 99,573%); falta formalizar a regra nas métricas
-- [ ] Documentar a decisão no relatório
+- <span style="color:yellow">[x] Todos os pontos ficam cobertos por pelo menos uma janela</span>
+- <span style="color:yellow">[x] Segmentos curtos recebem uma janela encostada ao fim; outliers são preservados</span>
+- [ ] Documentar a decisão no relatório final
 
 ### 3.5. Carregamento e batching (para o classificador)  ← <span style="color:green">**infraestrutura feita e verificada para GRU em 17/11/2026**</span>
 Objetivo: alimentar o modelo com as janelas, ignorando o padding de forma correta.
@@ -133,7 +135,7 @@ Objetivo: alimentar o modelo com as janelas, ignorando o padding de forma corret
 - [x] Agrupar janelas por tamanho (bucketing) para reduzir o padding por batch
 - [x] Testar um batch pequeno e validar formas, máscara e loss
 
-<span style="color:green">Implementado em `src/dataset_janelas.py` e testado por `src/testar_dataset_janelas.py`; `main.py` corre o teste no fim e o notebook tem a secção 5. No treino: 7 685 janelas, `T=590`, padding por batch 3,9% com bucketing vs 62,5% sem; `time_gap[0]=0` em 34 janelas pós-gap; loss mascarada e `pack_padded_sequence` com BiGRU OK. A parte CNN continua por fazer.</span>
+<span style="color:yellow">Com a cobertura total atual, o treino tem 7 992 janelas, a validação 1 970 e o teste 1 714, todos com 0 pontos fora das janelas. Os resultados históricos de 7 685 janelas e cobertura inferior correspondem à configuração provisória `min_pontos=30`.</span>
 
 ### 3.6. Ablações e variantes a testar (mais tarde)
 - [ ] Sobreposição: 0%, 25%, 50%, 75%

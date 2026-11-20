@@ -27,7 +27,7 @@ PARAMETROS = {
     "duracao_s": 30 * 60,
     "sobreposicao_pct": 50,
     "gap_max_s": 600,
-    "min_pontos": 30,
+    "min_pontos": 1,
 }
 
 CONJUNTOS = {
@@ -88,6 +88,14 @@ def verificar_integridade(parquet_path, janelas, gap_max_s):
         if atravessa.any():
             problemas.append(
                 f"{traj_id}: {int(atravessa.sum())} janelas atravessam um gap > {gap_max_s} s"
+            )
+
+        coberta = np.zeros(len(t), dtype=bool)
+        for a, b in zip(ini, fim):
+            coberta[a:b] = True
+        if not coberta.all():
+            problemas.append(
+                f"{traj_id}: {int((~coberta).sum())} pontos sem cobertura"
             )
 
     # 5. máscara, n_pontos e padding

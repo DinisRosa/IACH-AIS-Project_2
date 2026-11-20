@@ -32,6 +32,8 @@ def _janelas_tempo(t, duracao_s, passo_s, min_pontos):
     vazio = np.array([], dtype=np.int64)
     duracao_total = t[-1] - t[0]
     if duracao_total < duracao_s:
+        if len(t) >= min_pontos:
+            return np.array([0], dtype=np.int64), np.array([len(t)], dtype=np.int64)
         return vazio, vazio
     t0s = t[0] + np.arange(0, duracao_total - duracao_s + 1e-6, passo_s)
     if t0s[-1] + duracao_s < t[-1] - 1e-9:
@@ -122,6 +124,9 @@ def criar_janelas(parquet_path, n_pontos=None, sobreposicao_pct=50,
             else:
                 ini, fim = _janelas_tempo(t_rel[a:b], duracao_s, passo, min_pontos)
                 ini, fim = ini + a, fim + a
+                if len(ini) == 0:
+                    ini = np.array([a], dtype=np.int64)
+                    fim = np.array([b], dtype=np.int64)
             inis.append(ini)
             fins.append(fim)
         ini = np.concatenate(inis)
