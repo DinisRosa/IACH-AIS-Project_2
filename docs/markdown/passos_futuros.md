@@ -2,7 +2,7 @@
 
 Legenda: `[x]` feito · `[~]` parcialmente feito / por confirmar · `[ ]` por fazer
 
-## Estado atual (17/11/2026)
+## Estado atual (20/11/2026)
 
 Ficheiros já criados:
 - `limpar_csv.py` → `limpar_csv_para_parcelar` (CSV → Parquet limpo, label binário, ordenado por `(id, t)`)
@@ -12,6 +12,8 @@ Ficheiros já criados:
 - <span style="color:red">`gerar_janelas.py` → `gerar_janelas` (gera os três `.npz` finais, verifica a integridade e escreve `janelas_resumo.json`; adicionado a 17/11/2026)</span>
 - <span style="color:green">`dataset_janelas.py` → `DatasetJanelas`, `criar_dataloader`, `BucketBatchSampler` e `perda_mascarada` (lê os `.npz`, respeita a `mascara`/`y=-1`, trata o `time_gap[0]` pós-gap e faz bucketing; adicionado a 17/11/2026)</span>
 - <span style="color:green">`testar_dataset_janelas.py` → teste de formas, máscara, `time_gap[0]`, loss mascarada e packing com BiGRU (adicionado a 17/11/2026)</span>
+- <span style="color:green">`baselines_ponto.py` → DummyClassifier, LogisticRegression, RandomForestClassifier e HistGradientBoostingClassifier, ajustados e avaliados in-sample apenas no treino (adicionado a 20/11/2026)</span>
+- <span style="color:green">`investigar_qualidade.py` → relatório reproduzível de anomalias temporais, velocidades e prefixos partilhados</span>
 - `verificar_divisao.py` → `verificar_divisao` (confirma ids sem sobreposição, total de pontos e trajetórias completas)
 - `analisar_gaps.py` → `analisar_gaps` / `resumo_gaps` / `candidatos_fusao` (estudo dos gaps temporais e deteção de possíveis trajetórias fundidas)
 
@@ -31,15 +33,15 @@ Decisões tomadas:
 | Secção | Estado | O que se faz |
 | --- | --- | --- |
 | 0. Ambiente | Concluída | venv e bibliotecas de dados/ML |
-| 1. Dados e verificação | Concluída | limpeza, divisão, qualidade e gaps |
-| 2. Normalização | Quase concluída | normalização ajustada ao treino |
+| 1. Dados e verificação | <span style="color:green">Parcial — limpeza, divisão e gaps verificados; anomalias de qualidade identificadas, tratamento por decidir</span> | limpeza, divisão, qualidade e gaps |
+| 2. Normalização | Concluída | normalização ajustada ao treino |
 | 3. Janelamento | <span style="color:green">**Quase concluída** (3.1–3.3 feitos e 3.5 feito para GRU; faltam 3.4 e 3.6)</span> | janelas sobrepostas, gaps, padding, batching |
-| 4. Baselines | Por começar | HMM, modelo clássico e aproximação a Wu et al. |
+| 4. Baselines | <span style="color:green">Parcial — baselines ponto a ponto ajustados só no treino; falta seleção na validação e avaliação no teste</span> | HMM, modelo clássico por janela e aproximação a Wu et al. |
 | 5. Classificador | Por começar | treinar a rede de janelas |
 | 6. Pós-processamento | Por começar | agregar/suavizar previsões e estabilizar segmentos |
 | 7. Avaliação quantitativa | Por começar | métricas por ponto/segmento e comparações |
 | 8. Avaliação qualitativa e HCAI | Por começar | mapas, explicabilidade, confiança, dashboard |
-| 9. Escrita e entrega | Por começar | documentar decisões, resultados e entregar |
+| 9. Escrita e entrega | <span style="color:green">Em curso — proposta, auditorias e plano existentes; resultados e discussão por redigir</span> | documentar decisões, resultados e entregar |
 
 ---
 
@@ -109,7 +111,7 @@ Objetivo: produzir os `.npz` finais com os mesmos parâmetros e confirmar a cobe
 | Validação | 1 949 | 531 | 79 | 99,954% | 66,6% | OK |
 | Teste | 1 619 | 481 | 625 | 99,573% | 63,0% | OK |
 
-- [x] Confirmar os parâmetros finais: `duracao_s=30*60`, `sobreposicao_pct=50`, `gap_max_s=600`, `min_pontos=30`
+- [x] Registar a configuração de referência atual: `duracao_s=30*60`, `sobreposicao_pct=50`, `gap_max_s=600`, `min_pontos=30` (a seleção final ainda depende da validação)
 - [x] Criar `src/gerar_janelas.py` que gera e guarda `data/janelas_treino.npz`, `data/janelas_validacao.npz` e `data/janelas_teste.npz`
 - [x] Registar por conjunto: `n_janelas`, `T`, `pontos_descartados` e cobertura
 - [x] Confirmar que `T` pode variar entre conjuntos e que o modelo lida com isso (packing/máscara)
@@ -118,11 +120,11 @@ Objetivo: produzir os `.npz` finais com os mesmos parâmetros e confirmar a cobe
 ### 3.4. Política para pontos sem janela
 Objetivo: decidir o que fazer aos pontos que ficam fora de todas as janelas.
 
-- [ ] Excluir esses pontos das métricas (ficam sem previsão)
-- [ ] Reportar a cobertura por conjunto (≈ 99,6% no treino com `min_pontos=30`)
+- [ ] Definir se os pontos sem janela ficam sem previsão e são excluídos das métricas
+- [x] Medir e reportar a cobertura por conjunto (treino 99,630%, validação 99,954%, teste 99,573%); falta formalizar a regra nas métricas
 - [ ] Documentar a decisão no relatório
 
-### 3.5. Carregamento e batching (para o classificador)  ← <span style="color:green">**feito para GRU em 17/11/2026**</span>
+### 3.5. Carregamento e batching (para o classificador)  ← <span style="color:green">**infraestrutura feita e verificada para GRU em 17/11/2026**</span>
 Objetivo: alimentar o modelo com as janelas, ignorando o padding de forma correta.
 
 - [x] Implementar Dataset/DataLoader a partir do `.npz`, respeitando a `mascara`
@@ -142,7 +144,7 @@ Objetivo: alimentar o modelo com as janelas, ignorando o padding de forma corret
 ## 4. Baselines
 Objetivo: ter referências simples e interpretáveis para comparar com a rede.
 
-- [~] Baselines ponto a ponto implementados e executados apenas no treino
+- [x] Implementar e executar no treino DummyClassifier, LogisticRegression, RandomForestClassifier e HistGradientBoostingClassifier (EXP-009)
 - [ ] Selecionar baselines na validação
 - [ ] Avaliar baselines no teste
 - [ ] HMM simples sobre `euc_speed` e `signed_turn` (Peel e Good, 2011)
@@ -193,9 +195,9 @@ Objetivo: mostrar os resultados e sustentar a decisão humana (human-on-the-loop
 Objetivo: documentar o trabalho e preparar a entrega.
 
 - [x] Corrigir "128" para "123" na proposta/relatório (proposta corrigida, alterações a vermelho)
-- [ ] Documentar decisões de desenho (janela, rótulo, IDs com o mesmo prefixo, normalização, `t_rel`)
-- [ ] Reportar a distribuição de classes por conjunto
-- [x] `pip freeze > requirements.txt` (regenerar se as dependências mudarem)
+- [~] Documentar decisões de desenho (janela, rótulo, normalização e `t_rel` documentados; impacto dos IDs com prefixo comum ainda por avaliar)
+- [x] Reportar a distribuição de classes por conjunto
+- [x] Registar dependências necessárias em `requirements.txt` (lista curada; não é um `pip freeze` completo)
 - [ ] Redigir resultados e discussão
 
 ---

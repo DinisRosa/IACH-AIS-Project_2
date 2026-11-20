@@ -1,6 +1,7 @@
 # Auditoria final e plano de ação — IACH AIS
 
 **Data:** 20/11/2026
+**Estado revisto:** 20/11/2026, após os commits de baselines e integração do pipeline.
 **Âmbito:** auditoria consolidada do estado atual, incluindo a análise
 metodológica de segmentação e *data leakage*, seguida do plano de ação.
 
@@ -53,7 +54,8 @@ referência provisória**, não ainda como configuração final congelada.
 
 ### 1.3. Ainda não feito
 
-- Baselines ponto a ponto e baselines por janela.
+- Seleção dos baselines ponto a ponto na validação e avaliação no teste.
+- Baselines por janela, incluindo HMM e aproximação ao método de Wu et al.
 - Treino e avaliação do classificador sequencial.
 - Agregação de previsões de janelas sobrepostas.
 - Pós-processamento temporal e reconstrução de segmentos.
@@ -348,6 +350,8 @@ O teste não deve ser usado para escolher:
 - sensibilidade de `min_pontos` no treino;
 - geração final nos três conjuntos;
 - teste do Dataset/DataLoader e BiGRU empacotada.
+- baselines ponto a ponto (Dummy, regressão logística, random forest e
+  HistGradientBoosting), ajustados e medidos apenas no treino (EXP-009).
 
 Os resultados estruturais de treino registados incluem:
 
@@ -365,7 +369,7 @@ Os resultados estruturais de treino registados incluem:
 - modos por pontos 128, 256 e 512;
 - comparação com e sem `x`/`y`;
 - seleção por desempenho na validação;
-- baselines;
+- seleção de baselines na validação e avaliação no teste;
 - treino de modelo;
 - agregação e pós-processamento;
 - avaliação por ponto e segmento.
@@ -376,8 +380,9 @@ Os resultados estruturais de treino registados incluem:
 |---|---|
 | Auditoria do repositório | Este documento concluído |
 | Pipeline de dados | Essencialmente concluído; ressalvas metodológicas e de qualidade |
-| Baselines | Por fazer |
-| Avaliação ponto a ponto | Por fazer |
+| Baselines ponto a ponto | Implementados e executados no treino; validação e teste por fazer |
+| Baselines por janela | Por fazer |
+| Avaliação ponto a ponto | Métricas in-sample calculadas; avaliação externa por fazer |
 | Classificação sequencial/BiGRU | Infraestrutura pronta; modelo e treino por fazer |
 | Agregação/pós-processamento | Por fazer |
 | Ablações | Por fazer |
@@ -414,7 +419,7 @@ Os resultados estruturais de treino registados incluem:
    como análise de sensibilidade, se representarem o mesmo navio.
 7. Uniformizar a contagem de gaps no script.
 8. Atualizar os estados em `passos_futuros.md`.
-9. Implementar primeiro os baselines ponto a ponto, antes da BiGRU.
+9. Selecionar e avaliar na validação os baselines ponto a ponto já implementados, antes da BiGRU.
 10. Só depois de congelar decisões executar a avaliação final no teste.
 
 ## 9. Plano de ação recomendado

@@ -16,9 +16,12 @@ final.
 
 ## Estado atual
 
-A **preparação e verificação dos dados** estão concluídas. O **janelamento com
-sobreposição** está quase concluído: <span style="color:red">as janelas de treino, validação e teste já são geradas, guardadas em `.npz` e verificadas (17/11/2026)</span>; falta o *batching* e a política para pontos sem janela. O plano
-completo, com o estado de cada tarefa, está em
+<span style="color:green">O pipeline principal de preparação está implementado: limpeza,
+divisão por trajetória, normalização, geração e verificação das janelas, e
+infraestrutura de carregamento em batches para GRU. A investigação da qualidade
+dos dados continua aberta quanto ao tratamento de anomalias. Também falta
+formalizar a política para pontos sem janela.</span> O plano completo, com o
+estado de cada tarefa, está em
 [`docs/markdown/passos_futuros.md`](docs/markdown/passos_futuros.md).
 
 | Fase | Estado |
@@ -28,8 +31,8 @@ completo, com o estado de cada tarefa, está em
 | Divisão treino/teste/validação por trajetória | Concluído |
 | Verificação da divisão e análise de gaps | Concluído |
 | Normalização e parâmetros guardados em JSON | Concluído |
-| Janelamento com sobreposição | <span style="color:red">Quase concluído — janelas geradas; falta *batching*</span> |
-| Baselines ponto a ponto | <span style="color:red">Implementação inicial concluída; ajustada e medida apenas no treino</span> |
+| Janelamento e carregamento em batches | <span style="color:green">Infraestrutura implementada e verificada para GRU; faltam política de cobertura e ablações</span> |
+| Baselines ponto a ponto | <span style="color:green">Quatro modelos ajustados e medidos apenas no treino; falta seleção na validação e avaliação no teste</span> |
 | Classificador de janelas | Por fazer |
 | Pós-processamento temporal | Por fazer |
 | Avaliação quantitativa e qualitativa | Por fazer |
@@ -115,14 +118,14 @@ a partir do CSV.
 Colunas finais dos conjuntos normalizados:
 `id, t_rel, label, x, y, signed_turn, time_gap, euc_speed, distanceToShore`.
 
-## Janelamento (quase concluído)
+## Janelamento e batching
 
 `criar_janelas.py` transforma cada trajetória em janelas com sobreposição, em
 dois modos: por número de pontos (`n_pontos`) ou por duração (`duracao_s`).
 Cada janela guarda o `id`, as posições na trajetória e os `t_rel` no `meta`;
 no modo tempo há padding no fim, com `mascara` e `y = -1`.
 
-<span style="color:red">`gerar_janelas.py` aplica os parâmetros finais aos três conjuntos, grava os `.npz` e o `janelas_resumo.json`, e verifica a integridade (ids, posições, `t_rel`, gaps, máscara e padding). Resultados de 17/11/2026:</span>
+<span style="color:green">`gerar_janelas.py` aplica a configuração de referência aos três conjuntos, grava os `.npz` e o `janelas_resumo.json`, e verifica a integridade (IDs, posições, `t_rel`, gaps, máscara e padding). Os parâmetros continuam provisórios até seleção com treino e validação. Resultados registados em 20/11/2026:</span>
 
 | Conjunto | Janelas | `T` | Pontos sem janela | Cobertura | Padding |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -135,8 +138,15 @@ Parâmetros da experiência principal (modo tempo):
 - janelas de **30 min**, sobreposição de **50%**;
 - `gap_max_s=600`: nenhuma janela atravessa gaps superiores a 10 min;
 - `min_pontos=30`: descarta janelas com contexto insuficiente;
-- `T` sem limite (590 pontos no treino); o padding será tratado no
-  `batching`/modelo, não limitando `T`.
+- `T` sem limite (590 pontos no treino); o padding é tratado por máscara e
+  `collate`, com bucketing para reduzir o padding por batch.
+
+<span style="color:green">`dataset_janelas.py` implementa `DatasetJanelas`, `DataLoader`,
+bucketing por comprimento, loss mascarada e o tratamento em memória de
+`time_gap[0]` nas janelas após gaps longos. O packing com BiGRU foi verificado;
+a rede sequencial ainda não foi treinada. A cobertura observada é superior a
+99,5% nos três conjuntos, mas ainda falta decidir como os pontos sem janela
+entram nas métricas.</span>
 
 ## Baselines ponto a ponto
 
@@ -151,7 +161,7 @@ HistGradientBoostingClassifier. Guardam-se os modelos em `data/modelos/baselines
 e o resumo em `data/baselines_treino.json`. As métricas deste ficheiro são
 in-sample e não substituem avaliação em validação ou teste.
 
-<span style="color:red">A cobertura é superior a 99,5% em todos os conjuntos e a verificação de integridade não encontrou problemas. Falta implementar o *batching* e decidir a política para pontos sem janela.</span>
+<span style="color:green">A cobertura é superior a 99,5% nos três conjuntos e a verificação de integridade não encontrou problemas. O batching para GRU está implementado; a política para pontos sem janela continua pendente.</span>
 
 ## Configuração do ambiente
 
@@ -177,7 +187,10 @@ da raiz do repositório, porque os caminhos são relativos a `data/`:
 python src/main.py
 ```
 
-Isto gera `data/ais_123.parquet`, `data/treino_norm.parquet`,
+<span style="color:green">Além dos artefactos de preparação, o orquestrador executa
+o teste do `Dataset`/`DataLoader`, grava o relatório de qualidade e ajusta os
+baselines ponto a ponto exclusivamente no treino.</span> Isto gera
+`data/ais_123.parquet`, `data/treino_norm.parquet`,
 `data/teste_norm.parquet`, `data/validacao_norm.parquet`,
 `data/normalizacao.json` e <span style="color:red">os três `.npz` de janelas mais `data/janelas_resumo.json` (17/11/2026)</span>.
 
