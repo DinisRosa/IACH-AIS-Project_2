@@ -14,6 +14,7 @@ AIS e define a forma minima de documentar a decisao antes do treino.
 | Desalinhamento `t`/`time_gap` | 1 ponto em `219429000-2` em `2021-11-15 17:17:11`: `t` avanca 30 s, `time_gap=10 s` | `t_rel` acumulado fica desviado 20 s nesse troco |
 | `euc_speed > 30` nós | 63 pontos, concentrados em 6 IDs | Revisao por variante |
 | `euc_speed > 50` nós | 5 pontos | Valor maximo: 90,702 nós |
+| Cobertura das janelas | Treino: 7 992; validação: 1 970; teste: 1 714 janelas; 0 pontos sem janela nos três conjuntos | <span style="color:purple">Cobertura 100%; nenhum ponto será excluído das métricas por falta de janela</span> |
 | Velocidade implicita >30 km/h | 636 intervalos, em 42 IDs | O script de gaps nao deve usa-los como candidatos a fusao, pois filtra primeiro gaps >10 min |
 | Gaps >10 min | 174 internos | Nenhum deles tem velocidade implicita >30 km/h |
 | Prefixos compartilhados | 29 prefixos, 68 IDs | A divisao atual nao agrupa IDs com prefixo comum |
@@ -80,6 +81,7 @@ Nao foi demonstrado que o prefixo identifica o navio. A decisao recomendada e:
 - reservar teste para avaliacao final;
 - usar treino/validacao para escolher duracao, sobreposicao, features,
   normalizacao robusta e politica de padding;
+- <span style="color:purple">a política de cobertura está definida: não excluir pontos por ausência de janela; reconstruir uma previsão por ponto original e contar cada ponto uma vez nas métricas. A agregação entre janelas sobrepostas continua por implementar e deve ser registada como decisão metodológica própria;</span>
 - guardar seed, commit, conjunto, metrica e decisao no registo de experiencias;
 - nao alterar a divisao principal sem uma analise comparativa separada.
 

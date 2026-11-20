@@ -5,6 +5,7 @@ Legenda: `[x]` feito · `[~]` parcialmente feito / por confirmar · `[ ]` por fa
 ## Estado atual (20/11/2026)
 
 <span style="color:yellow">Decisão atual: os outliers não são removidos, corrigidos ou limitados. Todos os pontos das três divisões ficam cobertos por pelo menos uma janela. A configuração temporal usa `min_pontos=1`, com janela curta para segmentos inferiores a 30 minutos.</span>
+<span style="color:purple">Política 3.4: não se excluem pontos das métricas por falta de janela, porque a cobertura verificada é 100%. Na avaliação por ponto, cada observação original conta uma vez; as previsões de janelas sobrepostas terão de ser reconstruídas por ponto antes do cálculo das métricas. A regra de agregação das previsões pertence à secção 6 e continua por implementar.</span>
 
 Ficheiros já criados:
 - `limpar_csv.py` → `limpar_csv_para_parcelar` (CSV → Parquet limpo, label binário, ordenado por `(id, t)`)
@@ -37,7 +38,7 @@ Decisões tomadas:
 | 0. Ambiente | Concluída | venv e bibliotecas de dados/ML |
 | 1. Dados e verificação | <span style="color:yellow">Fechado — limpeza, divisão e gaps verificados; outliers preservados e cobertura total definida</span> | limpeza, divisão, qualidade e gaps |
 | 2. Normalização | Concluída | normalização ajustada ao treino |
-| 3. Janelamento | <span style="color:green">**Quase concluída** (3.1–3.3 feitos e 3.5 feito para GRU; faltam 3.4 e 3.6)</span> | janelas sobrepostas, gaps, padding, batching |
+| 3. Janelamento | <span style="color:purple">Quase concluída — 3.1–3.5 feitos para GRU; falta 3.6 (ablações)</span> | janelas sobrepostas, gaps, padding, batching |
 | 4. Baselines | <span style="color:green">Parcial — baselines ponto a ponto ajustados só no treino; falta seleção na validação e avaliação no teste</span> | HMM, modelo clássico por janela e aproximação a Wu et al. |
 | 5. Classificador | Por começar | treinar a rede de janelas |
 | 6. Pós-processamento | Por começar | agregar/suavizar previsões e estabilizar segmentos |
@@ -71,7 +72,7 @@ Decisões tomadas:
 - [x] `t_rel` bruto à parte
 - [x] Verificar distribuições normalizadas (`describe`)
 
-## 3. Janelamento com sobreposição  ← <span style="color:green">**quase concluído** (3.1–3.3 feitos e 3.5 feito para GRU em 17/11/2026; faltam 3.4 e 3.6)</span>
+## 3. Janelamento com sobreposição  ← <span style="color:purple">**quase concluído** (3.1–3.5 feitos para GRU; falta 3.6)</span>
 
 Objetivo: transformar as trajetórias normalizadas em janelas com sobreposição (por pontos ou por tempo), com máscara para padding, prontas para o classificador.
 
@@ -120,11 +121,12 @@ Objetivo: produzir os `.npz` finais com os mesmos parâmetros e confirmar a cobe
 - [x] Verificar a integridade: metas dentro do `id` certo e nenhuma janela a atravessar um gap > 600 s
 
 ### 3.4. Política para pontos sem janela
-Objetivo: decidir o que fazer aos pontos que ficam fora de todas as janelas.
+Objetivo: definir como tratar pontos que não pertencem a nenhuma janela e garantir que cada observação original entra no conjunto de avaliação por ponto.
 
-- <span style="color:yellow">[x] Todos os pontos ficam cobertos por pelo menos uma janela</span>
-- <span style="color:yellow">[x] Segmentos curtos recebem uma janela encostada ao fim; outliers são preservados</span>
-- [ ] Documentar a decisão no relatório final
+- <span style="color:purple">[x] Política: nenhum ponto é excluído das métricas por falta de janela; todos os pontos originais serão avaliados uma vez.</span>
+- <span style="color:purple">[x] Garantir e verificar cobertura de 100% em treino, validação e teste; segmentos mais curtos que 30 minutos recebem uma janela que cobre o segmento.</span>
+- <span style="color:purple">[x] Preservar os outliers; a cobertura total não depende de os remover ou limitar.</span>
+- <span style="color:purple">[x] Registar a política neste plano. Na avaliação, reconstruir previsões por ponto antes de calcular métricas; definir a agregação de previsões sobrepostas na secção 6.</span>
 
 ### 3.5. Carregamento e batching (para o classificador)  ← <span style="color:green">**infraestrutura feita e verificada para GRU em 17/11/2026**</span>
 Objetivo: alimentar o modelo com as janelas, ignorando o padding de forma correta.
@@ -135,7 +137,7 @@ Objetivo: alimentar o modelo com as janelas, ignorando o padding de forma corret
 - [x] Agrupar janelas por tamanho (bucketing) para reduzir o padding por batch
 - [x] Testar um batch pequeno e validar formas, máscara e loss
 
-<span style="color:yellow">Com a cobertura total atual, o treino tem 7 992 janelas, a validação 1 970 e o teste 1 714, todos com 0 pontos fora das janelas. Os resultados históricos de 7 685 janelas e cobertura inferior correspondem à configuração provisória `min_pontos=30`.</span>
+<span style="color:purple">Com a configuração de cobertura total, há 7 992 janelas no treino, 1 970 na validação e 1 714 no teste; os três conjuntos têm zero pontos fora das janelas. Os resultados históricos de 7 685 janelas e cobertura inferior correspondem à configuração anterior com `min_pontos=30`.</span>
 
 ### 3.6. Ablações e variantes a testar (mais tarde)
 - [ ] Sobreposição: 0%, 25%, 50%, 75%

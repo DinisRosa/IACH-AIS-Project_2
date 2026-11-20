@@ -1,5 +1,7 @@
 # Auditoria ao estado do projeto — 17/11/2026
 
+<span style="color:purple">**Atualização de estado (20/11/2026):** esta auditoria regista o estado de 17/11. O ponto 3.4, então pendente, foi entretanto resolvido: `min_pontos=1` e janelas curtas em segmentos inferiores à duração nominal garantem cobertura de 100% nos três conjuntos. Nenhum ponto será excluído das métricas por falta de janela; a reconstrução e agregação das previsões sobrepostas continua por implementar.</span>
+
 Âmbito: verificar, no repositório, se o que está marcado como feito em
 `docs/markdown/passos_futuros.md` está realmente feito, se o que está marcado
 como pendente ainda não foi feito e se o que está marcado como parcial ou por

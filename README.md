@@ -31,7 +31,7 @@ estado de cada tarefa, está em
 | Divisão treino/teste/validação por trajetória | Concluído |
 | Verificação da divisão e análise de gaps | Concluído |
 | Normalização e parâmetros guardados em JSON | Concluído |
-| Janelamento e carregamento em batches | <span style="color:yellow">Todos os pontos cobertos; outliers preservados; faltam ablações</span> |
+| Janelamento e carregamento em batches | <span style="color:purple">Cobertura total; política para avaliação por ponto definida; faltam ablações e agregação das previsões</span> |
 | Baselines ponto a ponto | <span style="color:green">Quatro modelos ajustados e medidos apenas no treino; falta seleção na validação e avaliação no teste</span> |
 | Classificador de janelas | Por fazer |
 | Pós-processamento temporal | Por fazer |
@@ -144,9 +144,9 @@ Parâmetros da experiência principal (modo tempo):
 <span style="color:green">`dataset_janelas.py` implementa `DatasetJanelas`, `DataLoader`,
 bucketing por comprimento, loss mascarada e o tratamento em memória de
 `time_gap[0]` nas janelas após gaps longos. O packing com BiGRU foi verificado;
-a rede sequencial ainda não foi treinada. A cobertura observada é superior a
-<span style="color:yellow">100% dos pontos ficam cobertos nos três conjuntos e os
-outliers são preservados sem remoção ou clipping.</span></span>
+a rede sequencial ainda não foi treinada.</span>
+
+<span style="color:purple">A política 3.4 é avaliar todos os pontos originais, sem exclusões por falta de janela: a cobertura verificada é 100% em treino, validação e teste. Cada ponto contará uma vez nas métricas; as previsões das janelas sobrepostas terão de ser reconstruídas por ponto. A escolha do método de agregação fica para a secção de pós-processamento. Segmentos com duração inferior a 30 minutos recebem uma janela curta que cobre o segmento. Os outliers são preservados.</span>
 
 ## Baselines ponto a ponto
 
@@ -161,7 +161,7 @@ HistGradientBoostingClassifier. Guardam-se os modelos em `data/modelos/baselines
 e o resumo em `data/baselines_treino.json`. As métricas deste ficheiro são
 in-sample e não substituem avaliação em validação ou teste.
 
-<span style="color:yellow">A cobertura é 100% nos três conjuntos, os outliers permanecem no dado e a verificação de integridade não encontrou problemas. O batching para GRU está implementado.</span>
+<span style="color:purple">A cobertura é 100% nos três conjuntos, os outliers permanecem nos dados e a verificação de integridade não encontrou problemas. O batching para GRU está implementado.</span>
 
 ## Configuração do ambiente
 

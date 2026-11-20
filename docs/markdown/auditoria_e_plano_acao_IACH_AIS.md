@@ -12,6 +12,8 @@ trabalho seguinte do projeto.
 
 <span style="color:yellow">Decisão atual dos dados: os outliers não são removidos, corrigidos ou limitados e todos os pontos ficam cobertos por pelo menos uma janela em treino, validação e teste. O janelamento usa `min_pontos=1` e cobertura curta para segmentos inferiores à duração nominal.</span>
 
+<span style="color:purple">Política 3.4: nenhum ponto será excluído da avaliação por falta de janela. As métricas por ponto incluirão todas as observações originais uma única vez, depois de reconstruir as previsões das janelas para os respetivos pontos. A cobertura está implementada e verificada; o método de agregação de previsões sobrepostas continua por definir na fase de pós-processamento.</span>
+
 O projeto tem um **pipeline técnico de preparação de dados essencialmente
 concluído, reproduzível e verificado**. A limpeza, divisão, normalização,
 janelamento e infraestrutura de carregamento das janelas funcionam.
@@ -409,7 +411,7 @@ Os resultados estruturais de treino registados incluem:
 2. **Criar um registo de experiências:** configuração, conjunto usado,
    métrica, seed, data, resultado e decisão.
 3. <span style="color:yellow">**Qualidade dos dados fechada:** outliers preservados e discrepância `t`/`time_gap` documentada.</span>
-4. <span style="color:yellow">**Cobertura fechada:** todos os pontos têm pelo menos uma janela; os outliers não entram em tratamento especial.</span>
+4. <span style="color:purple">**Cobertura fechada:** todos os pontos têm pelo menos uma janela; todos entram uma vez nas métricas por ponto, sem tratamento especial dos outliers. Falta implementar a reconstrução e agregação das previsões.</span>
 5. **Explorar e selecionar janelas apenas com treino/validação**, seguindo
    uma grelha previamente definida.
 6. **Investigar IDs com prefixos comuns** e executar uma divisão agrupada
@@ -462,7 +464,7 @@ Os resultados estruturais de treino registados incluem:
 ### Etapa F — Agregação e avaliação
 
 - reconstruir previsões por ponto;
-- tratar explicitamente pontos sem cobertura;
+- <span style="color:purple">incluir todos os pontos originais, sem máscara de exclusão por falta de cobertura, e agregar previsões das janelas sobrepostas antes das métricas;</span>
 - implementar segmentos e pós-processamento;
 - executar ablações;
 - congelar decisões e avaliar no teste.
@@ -953,8 +955,7 @@ A votação por classes pode ser incluída como variante, mas a agregação
 de probabilidades preserva mais informação.
 
 Garantir que cada previsão agregada está associada ao ponto original
-correto. Tratar explicitamente pontos sem cobertura e janelas demasiado
-curtas.
+correto. <span style="color:purple">A configuração atual cobre todos os pontos e cria janelas para segmentos curtos; por isso, não se exclui nenhum ponto por falta de janela. A reconstrução deve produzir uma previsão por ponto original, agregando as previsões das janelas sobrepostas antes das métricas.</span>
 
 ### Entregáveis
 
