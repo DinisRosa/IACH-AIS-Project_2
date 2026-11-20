@@ -142,6 +142,9 @@ Objetivo: alimentar o modelo com as janelas, ignorando o padding de forma corret
 ## 4. Baselines
 Objetivo: ter referências simples e interpretáveis para comparar com a rede.
 
+- [~] Baselines ponto a ponto implementados e executados apenas no treino
+- [ ] Selecionar baselines na validação
+- [ ] Avaliar baselines no teste
 - [ ] HMM simples sobre `euc_speed` e `signed_turn` (Peel e Good, 2011)
 - [ ] Modelo clássico sobre *features* agregadas por janela (ex.: gradient boosting)
 - [ ] Reimplementar ou aproximar Wu et al. (2022)

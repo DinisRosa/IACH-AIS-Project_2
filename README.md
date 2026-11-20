@@ -29,6 +29,7 @@ completo, com o estado de cada tarefa, está em
 | Verificação da divisão e análise de gaps | Concluído |
 | Normalização e parâmetros guardados em JSON | Concluído |
 | Janelamento com sobreposição | <span style="color:red">Quase concluído — janelas geradas; falta *batching*</span> |
+| Baselines ponto a ponto | <span style="color:red">Implementação inicial concluída; ajustada e medida apenas no treino</span> |
 | Classificador de janelas | Por fazer |
 | Pós-processamento temporal | Por fazer |
 | Avaliação quantitativa e qualitativa | Por fazer |
@@ -136,6 +137,19 @@ Parâmetros da experiência principal (modo tempo):
 - `min_pontos=30`: descarta janelas com contexto insuficiente;
 - `T` sem limite (590 pontos no treino); o padding será tratado no
   `batching`/modelo, não limitando `T`.
+
+## Baselines ponto a ponto
+
+Os baselines iniciais ajustam-se exclusivamente a `treino_norm.parquet`:
+
+```bash
+./IACH_AIS_venv/bin/python -m src.baselines_ponto
+```
+
+São treinados DummyClassifier, LogisticRegression, RandomForestClassifier e
+HistGradientBoostingClassifier. Guardam-se os modelos em `data/modelos/baselines/`
+e o resumo em `data/baselines_treino.json`. As métricas deste ficheiro são
+in-sample e não substituem avaliação em validação ou teste.
 
 <span style="color:red">A cobertura é superior a 99,5% em todos os conjuntos e a verificação de integridade não encontrou problemas. Falta implementar o *batching* e decidir a política para pontos sem janela.</span>
 
