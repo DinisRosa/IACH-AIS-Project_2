@@ -3,6 +3,8 @@
 import json
 
 import numpy as np
+from pathlib import Path
+
 import pandas as pd
 
 
@@ -10,7 +12,8 @@ def investigar_qualidade(csv_path="data/123_fishing_trajs.csv",
                         parquet_path="data/ais_123.parquet",
                         treino_path="data/treino_norm.parquet",
                         validacao_path="data/validacao_norm.parquet",
-                        teste_path="data/teste_norm.parquet"):
+                        teste_path="data/teste_norm.parquet",
+                        resultado_path="data/qualidade_dados.json"):
     df = pd.read_csv(
         csv_path,
         usecols=["id", "t", "label", "x", "y", "distance_gap",
@@ -57,7 +60,7 @@ def investigar_qualidade(csv_path="data/123_fishing_trajs.csv",
                 "ids": sorted(ids_grupo),
             })
 
-    return {
+    resultado = {
         "linhas": len(df),
         "trajetorias": df["id"].nunique(),
         "nulos": int(df.isna().sum().sum()),
@@ -78,6 +81,13 @@ def investigar_qualidade(csv_path="data/123_fishing_trajs.csv",
         "ids_com_prefixo_partilhado_n": grupos_partilhados["id"].nunique(),
         "prefixos_cruzados": prefixos_cruzados,
     }
+    resultado_path = Path(resultado_path)
+    resultado_path.parent.mkdir(parents=True, exist_ok=True)
+    resultado_path.write_text(
+        json.dumps(resultado, indent=2, ensure_ascii=False, default=str),
+    )
+    print(f"Investigação guardada em {resultado_path}")
+    return resultado
 
 
 if __name__ == "__main__":
