@@ -7,6 +7,7 @@ data/*.parquet
 data/*.json
 data/*.npz
 *.csv
+!docs/experiencias.csv
 
 # venv
 IACH_AIS_venv/

@@ -24,7 +24,8 @@ def analisar_gaps(parquet_path, limiar_segundos=LIMIAR_GAP_SEGUNDOS):
     a distância percorrida no intervalo e a velocidade implícita.
     """
     df = pd.read_parquet(parquet_path)
-    df = df.sort_values(["id"], kind="stable").reset_index(drop=True)
+    ordem = ["id", "t"] if "t" in df.columns else ["id"]
+    df = df.sort_values(ordem, kind="stable").reset_index(drop=True)
     grupo = df.groupby("id", observed=True)
 
     df["idx"] = grupo.cumcount()
@@ -71,11 +72,13 @@ def candidatos_fusao(gaps, velocidade_max_kmh=VELOCIDADE_MAX_KMH):
 
 if __name__ == "__main__":
     caminho = "./data/ais_123.parquet"
-    time_gap = pd.read_parquet(caminho, columns=["time_gap"])["time_gap"]
+    df_aux = pd.read_parquet(caminho, columns=["id", "time_gap"])
+    idx = df_aux.groupby("id", observed=True).cumcount()
+    time_gap_interno = df_aux.loc[idx > 0, "time_gap"]
 
     print("Número de gaps acima de:")
     for limite in (60, 600, 3600, 6 * 3600):
-        print(f"  {limite / 60:>6.0f} min: {int((time_gap > limite).sum()):>5d}")
+        print(f"  {limite / 60:>6.0f} min: {int((time_gap_interno > limite).sum()):>5d}")
 
     gaps = analisar_gaps(caminho)
     print(f"\nMaiores gaps (>{LIMIAR_GAP_SEGUNDOS / 60:.0f} min):")

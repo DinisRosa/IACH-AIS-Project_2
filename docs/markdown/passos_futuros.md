@@ -51,7 +51,7 @@ Decisões tomadas:
 
 ## 1. Dados e verificação
 - [x] Conversão CSV → Parquet (colunas mantidas, label binário, ordenação)
-- [x] Verificação de qualidade (nulos, duplicados, valores impossíveis)
+- [~] Verificação de qualidade (nulos e duplicados feitos; outliers, desalinhamento temporal e IDs por prefixo investigados, sem decisão final)
 - [x] Divisão por trajetória completa (treino/teste/validação)
 - [x] Contagem de trajetórias confirmada: 123 (dataset descarregado de novo do Kaggle, para excluir erro de cópia)
 - [x] Duração das trajetórias vista via `t_rel` (mediana ≈ 15 h, mín. ≈ 6 h, máx. ≈ 85 h)

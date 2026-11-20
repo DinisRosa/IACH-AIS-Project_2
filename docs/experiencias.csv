@@ -1,0 +1,9 @@
+experiment_id,data,status,config,metricas,decisao,data_executada
+EXP-001,treino,executada,"modo=pontos;n=256;sobreposicao=50%;gap=sem corte","n_janelas=5473;T=256","verificar base por pontos;janelas densas analisadas",2026-11-17
+EXP-002,treino,executada,"modo=pontos;n=256;sobreposicao=50%;gap_max_s=600","n_janelas=5436;pontos_sem_janela=3376","confirmar efeito do corte por gaps",2026-11-17
+EXP-003,treino,executada,"modo=tempo;duracao_s=1800;sobreposicao=50%;gap_max_s=600;min_pontos=2","n_janelas=7916;T=590;pontos_sem_janela=1347;padding=70.0%","limiar minimo muito permissivo",2026-11-17
+EXP-004,treino,executada,"modo=tempo;duracao_s=1800;sobreposicao=50%;gap_max_s=600;min_pontos=20","n_janelas=7745;T=590;pontos_sem_janela=2134;padding=69.4%","variacao intermedia",2026-11-17
+EXP-005,treino,executada,"modo=tempo;duracao_s=1800;sobreposicao=50%;gap_max_s=600;min_pontos=30","n_janelas=7685;T=590;pontos_sem_janela=2617;padding=69.2%","configuracao provisoria de referencia",2026-11-17
+EXP-006,treino,executada,"modo=tempo;duracao_s=1800;sobreposicao=50%;gap_max_s=600;min_pontos=50","n_janelas=7388;T=590;pontos_sem_janela=7073;padding=68.2%","limiar demasiado restritivo",2026-11-17
+EXP-007,treino/validacao/teste,executada,"modo=tempo;duracao_s=1800;sobreposicao=50%;gap_max_s=600;min_pontos=30","treino=7685/590/99.630%;validacao=1949/531/99.954%;teste=1619/481/99.573%;integridade=OK","artefactos finais gerados;parametros continuam provisórios",2026-11-20
+EXP-008,treino/validacao/teste,executada,"DatasetJanelas;DataLoader;buckets;BiGRU packing;loss mascarada","bucketing=3.9% padding vs 62.5%;34 janelas pos-gap;gradiente padding=nulo","infraestrutura validada;modelo sequencial ainda por treinar",2026-11-17
